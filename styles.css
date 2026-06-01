@@ -71,7 +71,7 @@ body {
 }
 
 /* Prevent horizontal overflow on mobile from absolute elements/carousels */
-.hero-section, .gallery-section, .hospedaje-section, .contact-section {
+.gallery-section, .hospedaje-section, .contact-section {
     overflow: hidden;
 }
 
