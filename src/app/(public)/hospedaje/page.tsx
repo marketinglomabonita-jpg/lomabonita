@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { CalendarClock, Check, Clock, LogIn, LogOut } from 'lucide-react'
 import { BUSINESS } from '@/core/config/site'
 import { IMAGES } from '@/core/lib/images'
+import { breadcrumbJsonLd, buildPageMetadata, JsonLd } from '@/core/lib/seo'
 import { cn } from '@/core/lib/utils'
 import { buttonVariants } from '@/core/ui/button'
 import { waLink } from '@/core/lib/contact'
@@ -12,11 +13,16 @@ import { SectionHeading } from '@/features/marketing/components/section-heading'
 import { WhatsAppIcon } from '@/features/marketing/components/brand-icons'
 import { ROOMS } from '@/features/hospedaje/data/rooms'
 
-export const metadata: Metadata = {
-  title: 'Hospedaje campestre',
-  description:
-    'Habitaciones equipadas y tranquilas en Piedras de Moler (Cartago): Confort Familiar, Cabaña Múltiple, Clásica Doble y Suite Loma Bonita. Check-in 3:00 p.m., check-out 1:00 p.m.',
-}
+const PAGE_DESCRIPTION =
+  'Hospedaje campestre en la Finca Hotel Loma Bonita (Piedras de Moler, Cartago): habitaciones para parejas, familias y grupos junto al Río La Vieja, a 40 minutos del Parque del Café y PANACA. Check-in 3:00 p.m. · check-out 1:00 p.m.'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Hospedaje campestre en Cartago — Finca hotel en el Eje Cafetero',
+  description: PAGE_DESCRIPTION,
+  path: '/hospedaje',
+  image: IMAGES['habitaciones-1-vertical'],
+  imageAlt: 'Habitación campestre de la Finca Hotel Loma Bonita',
+})
 
 const HORARIOS = [
   { icon: LogIn, label: 'Check-in', value: '3:00 p.m.' },
@@ -27,6 +33,12 @@ const HORARIOS = [
 export default function HospedajePage() {
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Inicio', path: '/' },
+          { name: 'Hospedaje', path: '/hospedaje' },
+        ])}
+      />
       <PageHero
         tag="Cómodo hospedaje"
         title="Tu descanso soñado en plena loma"

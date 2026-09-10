@@ -3,17 +3,28 @@ import Image from 'next/image'
 import type { Metadata } from 'next'
 import { Check, Utensils } from 'lucide-react'
 import { IMAGES } from '@/core/lib/images'
+import {
+  breadcrumbJsonLd,
+  buildPageMetadata,
+  JsonLd,
+  restaurantJsonLd,
+} from '@/core/lib/seo'
 import { buttonVariants } from '@/core/ui/button'
 import { waLink } from '@/core/lib/contact'
 import { PageHero } from '@/features/marketing/components/page-hero'
 import { SectionHeading } from '@/features/marketing/components/section-heading'
 import { WhatsAppIcon } from '@/features/marketing/components/brand-icons'
 
-export const metadata: Metadata = {
-  title: 'Restaurante campestre',
-  description:
-    'Restaurante campestre en Loma Bonita: la mejor sazón típica del Eje Cafetero con ingredientes frescos de la zona, con vista a la piscina y al paisaje.',
-}
+const PAGE_DESCRIPTION =
+  'Restaurante campestre en la Finca Loma Bonita: fiambre tradicional, almuerzos campesinos, desayunos con vista y la mejor sazón típica del Eje Cafetero, a pasos del Río La Vieja (Piedras de Moler, Cartago).'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Restaurante campestre en el Eje Cafetero — Comida típica en Cartago',
+  description: PAGE_DESCRIPTION,
+  path: '/restaurante',
+  image: IMAGES['fiambre-tradicional-restaurante'],
+  imageAlt: 'Fiambre tradicional del restaurante campestre Loma Bonita',
+})
 
 const DESTACADOS = [
   'Platos típicos de la región, con la sazón de siempre',
@@ -33,6 +44,18 @@ const FOTOS = [
 export default function RestaurantePage() {
   return (
     <>
+      <JsonLd
+        data={restaurantJsonLd({
+          image: IMAGES['fiambre-tradicional-restaurante'],
+          description: PAGE_DESCRIPTION,
+        })}
+      />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Inicio', path: '/' },
+          { name: 'Restaurante', path: '/restaurante' },
+        ])}
+      />
       <PageHero
         tag="Gastronomía"
         title="Restaurante campestre"

@@ -121,6 +121,7 @@ export function GalleryGrid() {
               alt={current.alt}
               width={current.image.w}
               height={current.image.h}
+              sizes="(min-width: 640px) 90vw, 100vw"
               className="h-auto max-h-[78vh] w-auto max-w-full object-contain"
             />
             <figcaption className="text-sm text-white/85">{current.caption}</figcaption>

@@ -4,17 +4,21 @@ import type { Metadata } from 'next'
 import { CalendarCheck, Check, Clock, ParkingCircle, ShieldCheck, Sun, Ticket } from 'lucide-react'
 import { BUSINESS } from '@/core/config/site'
 import { IMAGES, type ImageAsset } from '@/core/lib/images'
+import { breadcrumbJsonLd, buildPageMetadata, JsonLd } from '@/core/lib/seo'
 import { buttonVariants } from '@/core/ui/button'
 import { waLink } from '@/core/lib/contact'
 import { PageHero } from '@/features/marketing/components/page-hero'
 import { SectionHeading } from '@/features/marketing/components/section-heading'
 import { WhatsAppIcon } from '@/features/marketing/components/brand-icons'
 
-export const metadata: Metadata = {
-  title: 'Pasadías',
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Pasadía en Cartago — Piscina, almuerzo típico y diversión en el Eje Cafetero',
   description:
-    'Pasadía en Loma Bonita (Piedras de Moler, Cartago): piscina tropical, zonas verdes, cancha de fútbol, billares, zona infantil y restaurante campestre. Ingreso desde las 9:00 a.m.',
-}
+    'Plan de pasadía en Cartago con piscina tropical, zonas verdes, cancha de fútbol, billares, zona infantil y restaurante campestre en Piedras de Moler. Suma karts, cabalgata o balsaje por el Río La Vieja. Ingreso desde las 9:00 a.m.',
+  path: '/pasadias',
+  image: IMAGES['piscina-recreativa'],
+  imageAlt: 'Piscina recreativa de la Finca Loma Bonita',
+})
 
 const INCLUYE = [
   'Piscina tropical con zonas seguras para niños',
@@ -44,6 +48,12 @@ const ZONAS: { image: ImageAsset; alt: string; caption: string }[] = [
 export default function PasadiasPage() {
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Inicio', path: '/' },
+          { name: 'Pasadías', path: '/pasadias' },
+        ])}
+      />
       <PageHero
         tag="Plan pasadía"
         title="Un día completo de naturaleza y diversión"

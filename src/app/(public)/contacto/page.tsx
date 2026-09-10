@@ -3,16 +3,21 @@ import { Facebook, Instagram, MapPin, Phone } from 'lucide-react'
 import { BUSINESS } from '@/core/config/site'
 import { formatPhone, waLink } from '@/core/lib/contact'
 import { IMAGES } from '@/core/lib/images'
+import { breadcrumbJsonLd, buildPageMetadata, JsonLd } from '@/core/lib/seo'
 import { buttonVariants } from '@/core/ui/button'
 import { PageHero } from '@/features/marketing/components/page-hero'
 import { TikTokIcon, WhatsAppIcon } from '@/features/marketing/components/brand-icons'
 import { ContactForm } from '@/features/contacto/components/contact-form'
 
-export const metadata: Metadata = {
-  title: 'Contacto y reservas',
-  description:
-    'Reservas y contacto de Finca Hotel Loma Bonita: WhatsApp 310 291 3182, línea 324 497 1602, horarios, dirección en Piedras de Moler (Vía Alcalá, Cartago) y cómo llegar.',
-}
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Contacto y reservas — Finca hotel en Piedras de Moler, Cartago',
+  description: `Reserva tu pasadía, hospedaje o evento en la Finca Hotel Loma Bonita: WhatsApp ${formatPhone(
+    BUSINESS.phones[0],
+  )}, línea ${formatPhone(BUSINESS.phones[1])}, dirección en Piedras de Moler (Vía Alcalá, Cartago), horarios y cómo llegar.`,
+  path: '/contacto',
+  image: IMAGES['zonas-de-comunes-de-descanso'],
+  imageAlt: 'Zonas comunes de descanso de la Finca Loma Bonita',
+})
 
 const HORARIOS = [
   { label: 'Reservas', value: BUSINESS.hours.reservas },
@@ -34,6 +39,12 @@ const SOCIALS = [
 export default function ContactoPage() {
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Inicio', path: '/' },
+          { name: 'Contacto', path: '/contacto' },
+        ])}
+      />
       <PageHero
         tag="Reservas & contacto"
         title="¡Planea tu día perfecto hoy mismo!"

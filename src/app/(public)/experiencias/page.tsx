@@ -5,16 +5,25 @@ import { cn } from '@/core/lib/utils'
 import { buttonVariants } from '@/core/ui/button'
 import { waLink } from '@/core/lib/contact'
 import { IMAGES } from '@/core/lib/images'
+import {
+  breadcrumbJsonLd,
+  buildPageMetadata,
+  JsonLd,
+  touristAttractionJsonLd,
+} from '@/core/lib/seo'
 import { PageHero } from '@/features/marketing/components/page-hero'
 import { SectionHeading } from '@/features/marketing/components/section-heading'
 import { WhatsAppIcon } from '@/features/marketing/components/brand-icons'
 import { EXPERIENCES, type Experience } from '@/features/experiencias/data/experiences'
 
-export const metadata: Metadata = {
-  title: 'Experiencias: karts, cabalgata y balsaje',
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Balsaje por el Río La Vieja, karts y cabalgata — Experiencias en el Eje Cafetero',
   description:
-    'Experiencias en Loma Bonita y el Río La Vieja: pista de karts, cabalgata por el campo cafetero y balsaje en balsa de guadua con salida y regreso desde la finca, en Piedras de Moler.',
-}
+    'Balsaje por el Río La Vieja en balsa de guadua con salida y regreso desde Loma Bonita (Piedras de Moler, Cartago), pista de karts y cabalgata por el campo cafetero. Experiencias cerca del Parque del Café y PANACA.',
+  path: '/experiencias',
+  image: IMAGES['loma-bonita'],
+  imageAlt: 'Panorámica de la Finca Loma Bonita, a pasos del Río La Vieja',
+})
 
 const EXPERIENCE_ICONS = {
   karts: Car,
@@ -86,8 +95,26 @@ function ExperienceCard({ experience }: { experience: Experience }) {
 }
 
 export default function ExperienciasPage() {
+  const balsaje = EXPERIENCES.find((e) => e.id === 'balsaje')
+
   return (
     <>
+      {balsaje && (
+        <JsonLd
+          data={touristAttractionJsonLd({
+            name: balsaje.title,
+            description: balsaje.description,
+            image: IMAGES['loma-bonita'],
+            touristType: ['Familias', 'Grupos de amigos', 'Turismo de aventura'],
+          })}
+        />
+      )}
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Inicio', path: '/' },
+          { name: 'Experiencias', path: '/experiencias' },
+        ])}
+      />
       <PageHero
         tag="Aventura y tradición"
         title="Experiencias en el Eje Cafetero"

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { BUSINESS } from '@/core/config/site'
 import { IMAGES } from '@/core/lib/images'
+import { buildPageMetadata, JsonLd, lodgingBusinessJsonLd } from '@/core/lib/seo'
 import { cn } from '@/core/lib/utils'
 import { buttonVariants } from '@/core/ui/button'
 import { Faq, type FaqItem } from '@/features/marketing/components/faq'
@@ -24,10 +25,20 @@ import { SectionHeading } from '@/features/marketing/components/section-heading'
 import { WhatsAppIcon } from '@/features/marketing/components/brand-icons'
 import { waLink } from '@/core/lib/contact'
 
-export const metadata: Metadata = {
-  description:
-    'Finca hotel campestre en Piedras de Moler, Vía Alcalá (Cartago), junto al Río La Vieja. Pasadía, hospedaje, restaurante campestre, salón de eventos, karts, cabalgata y balsaje.',
-}
+const HOME_TITLE =
+  'Finca Hotel Loma Bonita | Pasadía, hospedaje y experiencias en el Eje Cafetero'
+
+const HOME_DESCRIPTION =
+  'Finca hotel campestre en Piedras de Moler, Vía Alcalá (Cartago), a pasos del Río La Vieja. Pasadía con piscina, hospedaje campestre, restaurante típico, salón de eventos y balsaje por el Río La Vieja. A 40 minutos del Parque del Café y PANACA.'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: HOME_TITLE,
+  absoluteTitle: true,
+  description: HOME_DESCRIPTION,
+  path: '/',
+  image: IMAGES['primera-seccion-finca-loma-bonita'],
+  imageAlt: 'Piscina tropical de la Finca Hotel Loma Bonita en Piedras de Moler',
+})
 
 const FEATURES = [
   { icon: Waves, label: 'Piscina tropical' },
@@ -166,6 +177,9 @@ export default function HomePage() {
 
   return (
     <>
+      <JsonLd
+        data={lodgingBusinessJsonLd({ image: hero, description: HOME_DESCRIPTION })}
+      />
       <section className="relative flex min-h-[86svh] items-center overflow-hidden">
         <Image
           src={hero.src}

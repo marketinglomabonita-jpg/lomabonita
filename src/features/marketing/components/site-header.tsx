@@ -55,9 +55,9 @@ export function SiteHeader() {
             <Image
               src={IMAGES['logo-finca-loma-bonita'].src}
               alt={`Logo de ${BUSINESS.legalName}`}
-              width={IMAGES['logo-finca-loma-bonita'].w}
-              height={IMAGES['logo-finca-loma-bonita'].h}
-              priority
+              width={37}
+              height={44}
+              sizes="40px"
               className="h-11 w-auto"
             />
             <span className="flex min-w-0 flex-col leading-tight">
