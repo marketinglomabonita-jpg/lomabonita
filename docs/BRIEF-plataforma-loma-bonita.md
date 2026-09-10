@@ -108,14 +108,14 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 - **Completada**: 2026-09-10
 
 ### Fase 1: Sitio público, Inicio rediseñada y páginas de servicio
-- **Estado**: EN PROGRESO
+- **Estado**: COMPLETADO
 - **Objetivo high-level**: Home nueva mobile-first con estética Eje Cafetero + navegación y footer compartidos + páginas informativas `/hospedaje`, `/restaurante`, `/pasadias`, `/experiencias` (karts, cabalgata, balsaje), `/contacto`, `/galeria`, con el contenido migrado del prototipo y sin ninguna mención a `fincalomabonitacartago.com`.
 - **Criterios observables**: cada ruta listada responde 200 y renderiza su `<h1>` propio; navegación y footer aparecen en todas; `grep -ri "fincalomabonitacartago" src/ public/` no devuelve nada (control negativo); en viewport 390px no hay scroll horizontal ni solapamientos en ninguna de las páginas (revisión con agent-browser, screenshot); los teléfonos, redes y horarios coinciden con los del prototipo; la ficha de balsaje menciona explícitamente "salida y regreso desde Loma Bonita".
 - **Depende de**: Fase 0
 - **Aprendizajes para fases siguientes**: —
 - **Ajustes a la Directiva de Stack**: —
 - **Iniciada**: 2026-09-10
-- **Completada**: —
+- **Completada**: 2026-09-10
 
 ### Fase 2: SEO técnico y estructura de contenido
 - **Estado**: EN PROGRESO
