@@ -58,4 +58,12 @@ export const BUSINESS = {
     facebook: 'https://www.facebook.com/share/1BZ1UQPpk8/',
     tiktok: 'https://www.tiktok.com/@fincalomabonita',
   },
+  // NAP en formato de presentacion (con tildes) para footer y pagina de contacto.
+  displayAddress: 'Piedras de Moler, Vía Alcalá, Cartago — Valle del Cauca, Colombia',
+  // Enlaces de navegacion externa (anadidos en Fase 1: no existian en Fase 0).
+  links: {
+    instagramHandle: '@fincahotel.lomabonita',
+    googleMaps: 'https://maps.google.com/?q=Finca+Loma+Bonita+Cartago+Piedras+de+Moler',
+    waze: 'https://waze.com/ul?q=Finca+Loma+Bonita+Cartago',
+  },
 } as const
