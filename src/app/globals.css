@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Crema calido de fondo, tinta cafe oscuro */
+    --background: 40 33% 97%;
+    --foreground: 25 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 30% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 30% 15%;
+
+    /* Verde selva */
+    --primary: 150 45% 22%;
+    --primary-foreground: 40 40% 97%;
+
+    /* Azul piscina */
+    --secondary: 199 89% 38%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Arcilla / terracota */
+    --accent: 18 65% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 40 20% 92%;
+    --muted-foreground: 25 15% 40%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 35 20% 85%;
+    --input: 35 20% 85%;
+    --ring: 150 45% 22%;
+
+    --radius: 0.75rem;
+
+    /* Acentos de marca */
+    --selva: 150 45% 22%;
+    --arcilla: 18 65% 52%;
+    --cafe: 25 40% 28%;
+    --piscina: 199 89% 38%;
+  }
+
+  .dark {
+    --background: 160 20% 8%;
+    --foreground: 40 30% 92%;
+    --card: 160 18% 11%;
+    --card-foreground: 40 30% 92%;
+    --popover: 160 18% 11%;
+    --popover-foreground: 40 30% 92%;
+    --primary: 150 40% 55%;
+    --primary-foreground: 160 30% 10%;
+    --secondary: 199 70% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 18 60% 55%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 160 12% 18%;
+    --muted-foreground: 40 15% 65%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 160 12% 20%;
+    --input: 160 12% 20%;
+    --ring: 150 40% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    text-wrap: pretty;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+    text-wrap: balance;
+  }
+}

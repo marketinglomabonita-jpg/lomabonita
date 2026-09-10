@@ -1,0 +1,100 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+*.rsc
+
+# Production
+/build
+/dist
+
+# Misc
+.DS_Store
+*.pem
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local env files
+.env*.local
+!.env.example
+
+# Vercel
+.vercel
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# OS
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Claude Code
+.claude/skills/**/node_modules
+.claude/plugins
+.claude/logs/
+*.mcp.json
+!example.mcp.json
+
+# Graphify — grafo de conocimiento (graph.json + GRAPH_REPORT.md viajan con el repo; el estado volátil no)
+.graphify/cache/
+.graphify/branch.json
+.graphify/worktree.json
+.graphify/needs_update
+.graphify/transcripts/
+.graphify/converted/
+.graphify/studio/
+.graphify/.graphify_*
+.graphify/watch-lock.json
+.graphify/watch-pid
+.graphify/.last-update-exit-code
+.graphify/embeddings-cache.json
+
+# Default output dir de graphifyy sin GRAPHIFY_OUT seteado (Praxis siempre fija GRAPHIFY_OUT=.graphify;
+# esto es solo la red de seguridad si una invocación manual lo olvida)
+graphify-out/
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# --- Loma Bonita: el repo del cliente lleva el producto, no el sistema de desarrollo Praxis ---
+# Se conservan (versionados): CLAUDE.md, AGENTS.md, docs/, .claude/PRPs/, .claude/settings.json
+# Se excluye el tooling voluminoso:
+.claude/skills/
+.claude/hooks/
+.claude/design-systems/
+.claude/ATTRIBUTIONS.md
+.claude/GLOSSARY.md
+.claude/README.md
+.claude/example.mcp.json
+.agents/
+.graphify/
+.praxis/
+*-new.md
+tsconfig.tsbuildinfo

@@ -1,0 +1,296 @@
+{
+  "almuerzo-pezcado-vertical": {
+    "src": "/img/almuerzo-pezcado-vertical.webp",
+    "w": 738,
+    "h": 1600,
+    "bytes": 100820,
+    "original": "Almuerzo pezcado -(Vertical).jpeg"
+  },
+  "almuerzo-tipico-vertical": {
+    "src": "/img/almuerzo-tipico-vertical.webp",
+    "w": 901,
+    "h": 1600,
+    "bytes": 91008,
+    "original": "Almuerzo tipico-(Vertical).jpeg"
+  },
+  "billares-1": {
+    "src": "/img/billares-1.webp",
+    "w": 1500,
+    "h": 1125,
+    "bytes": 190602,
+    "original": "Billares 1.jpeg"
+  },
+  "billares-2-vertical": {
+    "src": "/img/billares-2-vertical.webp",
+    "w": 1086,
+    "h": 1448,
+    "bytes": 212626,
+    "original": "Billares 2 -(Vertical).jpeg"
+  },
+  "cancha-de-futbol": {
+    "src": "/img/cancha-de-futbol.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 280926,
+    "original": "Cancha de futbol.jpeg"
+  },
+  "desayno-vertical": {
+    "src": "/img/desayno-vertical.webp",
+    "w": 904,
+    "h": 1600,
+    "bytes": 46686,
+    "original": "desayno -(Vertical).jpeg"
+  },
+  "desayuno-piscina-vertical": {
+    "src": "/img/desayuno-piscina-vertical.webp",
+    "w": 930,
+    "h": 1600,
+    "bytes": 51928,
+    "original": "Desayuno piscina -(Vertical).jpeg"
+  },
+  "desayuno-vista-a-la-piscina-y-el-paisaje": {
+    "src": "/img/desayuno-vista-a-la-piscina-y-el-paisaje.webp",
+    "w": 738,
+    "h": 1600,
+    "bytes": 87790,
+    "original": "desayuno vista a la piscina y el paisaje.jpeg"
+  },
+  "entrada-finca-loma-bonita": {
+    "src": "/img/entrada-finca-loma-bonita.webp",
+    "w": 1086,
+    "h": 1448,
+    "bytes": 177516,
+    "original": "Entrada finca loma bonita.jpeg"
+  },
+  "favicon-loma-bonita": {
+    "src": "/img/favicon-loma-bonita.webp",
+    "w": 667,
+    "h": 667,
+    "bytes": 152708,
+    "original": "favicon loma bonita.png"
+  },
+  "fiambre-tradicional-restaurante": {
+    "src": "/img/fiambre-tradicional-restaurante.webp",
+    "w": 1500,
+    "h": 691,
+    "bytes": 109178,
+    "original": "Fiambre tradicional restaurante.jpeg"
+  },
+  "flayer-vertical": {
+    "src": "/img/flayer-vertical.webp",
+    "w": 1024,
+    "h": 1536,
+    "bytes": 272940,
+    "original": "flayer -(Vertical).jpeg"
+  },
+  "flayer-horizontal-finca-loma-bonita-cartago": {
+    "src": "/img/flayer-horizontal-finca-loma-bonita-cartago.webp",
+    "w": 1500,
+    "h": 1000,
+    "bytes": 289758,
+    "original": "flayer horizontal finca loma bonita cartago.png"
+  },
+  "habitaciones-1-vertical": {
+    "src": "/img/habitaciones-1-vertical.webp",
+    "w": 1086,
+    "h": 1448,
+    "bytes": 93614,
+    "original": "habitaciones 1-(Vertical).jpeg"
+  },
+  "habitaciones-2-vertical": {
+    "src": "/img/habitaciones-2-vertical.webp",
+    "w": 1086,
+    "h": 1448,
+    "bytes": 95510,
+    "original": "habitaciones 2-(Vertical).jpeg"
+  },
+  "habitaciones-3-vertical": {
+    "src": "/img/habitaciones-3-vertical.webp",
+    "w": 1086,
+    "h": 1448,
+    "bytes": 75472,
+    "original": "habitaciones 3 -(Vertical).jpeg"
+  },
+  "habitaciones-4-vertical": {
+    "src": "/img/habitaciones-4-vertical.webp",
+    "w": 1086,
+    "h": 1448,
+    "bytes": 83138,
+    "original": "habitaciones 4 -(Vertical).jpeg"
+  },
+  "info-general-de-servicios": {
+    "src": "/img/info-general-de-servicios.webp",
+    "w": 1500,
+    "h": 1000,
+    "bytes": 275304,
+    "original": "info general de servicios.png"
+  },
+  "juego-de-rana-vertical": {
+    "src": "/img/juego-de-rana-vertical.webp",
+    "w": 738,
+    "h": 1013,
+    "bytes": 69882,
+    "original": "juego de rana-(Vertical).jpeg"
+  },
+  "logo-finca-loma-bonita": {
+    "src": "/img/logo-finca-loma-bonita.webp",
+    "w": 722,
+    "h": 854,
+    "bytes": 206814,
+    "original": "logo finca loma bonita.png"
+  },
+  "loma-bonita": {
+    "src": "/img/loma-bonita.webp",
+    "w": 1500,
+    "h": 692,
+    "bytes": 229512,
+    "original": "Loma bonita.jpeg"
+  },
+  "pasadia-con-almuerzo-vertical": {
+    "src": "/img/pasadia-con-almuerzo-vertical.webp",
+    "w": 590,
+    "h": 1083,
+    "bytes": 74676,
+    "original": "Pasadia con almuerzo -(Vertical).jpeg"
+  },
+  "pasadia-con-fiambre-vertical": {
+    "src": "/img/pasadia-con-fiambre-vertical.webp",
+    "w": 590,
+    "h": 1048,
+    "bytes": 102784,
+    "original": "pasadia con fiambre (vertical).jpeg"
+  },
+  "piscina-hotel-la-lominta": {
+    "src": "/img/piscina-hotel-la-lominta.webp",
+    "w": 1280,
+    "h": 960,
+    "bytes": 268410,
+    "original": "piscina hotel la lominta.jpeg"
+  },
+  "piscina-nocturna-huespedes-nadando-vertical": {
+    "src": "/img/piscina-nocturna-huespedes-nadando-vertical.webp",
+    "w": 738,
+    "h": 932,
+    "bytes": 46332,
+    "original": "piscina nocturna huespedes nadando -(Vertical).jpeg"
+  },
+  "piscina-nocturna": {
+    "src": "/img/piscina-nocturna.webp",
+    "w": 1500,
+    "h": 692,
+    "bytes": 113894,
+    "original": "Piscina nocturna.jpeg"
+  },
+  "piscina-recreativa": {
+    "src": "/img/piscina-recreativa.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 268370,
+    "original": "piscina recreativa.jpeg"
+  },
+  "piscinas-2-vertical": {
+    "src": "/img/piscinas-2-vertical.webp",
+    "w": 960,
+    "h": 1280,
+    "bytes": 260894,
+    "original": "Piscinas 2 -(Vertical).jpeg"
+  },
+  "primera-seccion-finca-loma-bonita": {
+    "src": "/img/primera-seccion-finca-loma-bonita.webp",
+    "w": 1280,
+    "h": 680,
+    "bytes": 150504,
+    "original": "Primera seccion finca loma bonita.jpeg"
+  },
+  "restaurante-vista-a-la-piscina-vertical": {
+    "src": "/img/restaurante-vista-a-la-piscina-vertical.webp",
+    "w": 590,
+    "h": 1280,
+    "bytes": 122174,
+    "original": "Restaurante vista a la piscina -(Vertical).jpeg"
+  },
+  "sala-de-juegos-billar-rana": {
+    "src": "/img/sala-de-juegos-billar-rana.webp",
+    "w": 1500,
+    "h": 1125,
+    "bytes": 208654,
+    "original": "sala de juegos - billar - rana.jpeg"
+  },
+  "visitantes-felices-finca-hotel-loma-bonita-vertical": {
+    "src": "/img/visitantes-felices-finca-hotel-loma-bonita-vertical.webp",
+    "w": 738,
+    "h": 1045,
+    "bytes": 62304,
+    "original": "Visitantes felices finca hotel loma bonita -(Vertical).jpeg"
+  },
+  "visitantes-pasadia": {
+    "src": "/img/visitantes-pasadia.webp",
+    "w": 1280,
+    "h": 590,
+    "bytes": 96162,
+    "original": "visitantes pasadia.jpeg"
+  },
+  "vistantes-restaurante-vertical": {
+    "src": "/img/vistantes-restaurante-vertical.webp",
+    "w": 590,
+    "h": 900,
+    "bytes": 81800,
+    "original": "vistantes restaurante -(Vertical).jpeg"
+  },
+  "whatsapp-image-2026-05-27-at-10-28-36-am-1": {
+    "src": "/img/whatsapp-image-2026-05-27-at-10-28-36-am-1.webp",
+    "w": 738,
+    "h": 1600,
+    "bytes": 72886,
+    "original": "WhatsApp Image 2026-05-27 at 10.28.36 AM (1).jpeg"
+  },
+  "whatsapp-image-2026-05-27-at-10-28-36-am": {
+    "src": "/img/whatsapp-image-2026-05-27-at-10-28-36-am.webp",
+    "w": 738,
+    "h": 1600,
+    "bytes": 126588,
+    "original": "WhatsApp Image 2026-05-27 at 10.28.36 AM.jpeg"
+  },
+  "zona-de-amacas-descanso": {
+    "src": "/img/zona-de-amacas-descanso.webp",
+    "w": 738,
+    "h": 1600,
+    "bytes": 91160,
+    "original": "zona de amacas descanso.jpeg"
+  },
+  "zona-de-desanso": {
+    "src": "/img/zona-de-desanso.webp",
+    "w": 738,
+    "h": 890,
+    "bytes": 94954,
+    "original": "zona de desanso.jpeg"
+  },
+  "zona-de-juegos-infantiles-culumbios-burrito-vertical": {
+    "src": "/img/zona-de-juegos-infantiles-culumbios-burrito-vertical.webp",
+    "w": 1085,
+    "h": 1450,
+    "bytes": 283992,
+    "original": "zona de juegos infantiles culumbios burrito -(Vertical).jpeg"
+  },
+  "zona-infantil": {
+    "src": "/img/zona-infantil.webp",
+    "w": 1500,
+    "h": 1125,
+    "bytes": 275680,
+    "original": "zona infantil.jpeg"
+  },
+  "zonas-de-comunes-de-descanso": {
+    "src": "/img/zonas-de-comunes-de-descanso.webp",
+    "w": 1500,
+    "h": 1125,
+    "bytes": 282292,
+    "original": "Zonas de comunes de descanso.jpeg"
+  },
+  "zonas-de-descanso-vista-a-la-piscina-y-la-montana": {
+    "src": "/img/zonas-de-descanso-vista-a-la-piscina-y-la-montana.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 294014,
+    "original": "zonas de descanso -vista a la piscina y la montaña.jpeg"
+  }
+}
