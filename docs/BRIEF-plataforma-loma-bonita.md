@@ -118,14 +118,14 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 - **Completada**: 2026-09-10
 
 ### Fase 2: SEO técnico y estructura de contenido
-- **Estado**: EN PROGRESO
+- **Estado**: COMPLETADO
 - **Objetivo high-level**: metadata por ruta, `sitemap.ts` y `robots.ts` dinámicos controlados por `SITE_MODE`, datos estructurados JSON-LD por tipo (LodgingBusiness, Restaurant, TouristAttraction para balsaje), Open Graph, canónicos a `lomabonitahotel.com`, y una pasada de rendimiento/Core Web Vitals.
 - **Criterios observables**: cada página pública emite `<title>`, `<meta name=description>`, `<link rel=canonical>` únicos apuntando al host de producción; el JSON-LD valida contra el validador de Schema.org sin errores; con `SITE_MODE=production` (local) `sitemap.xml` lista las rutas públicas y excluye `/admin`; con `SITE_MODE=demo` no hay sitemap y `robots` bloquea todo (control positivo y negativo del mismo interruptor); Lighthouse mobile ≥ 90 en Performance y SEO en la Home y en `/hospedaje`.
 - **Depende de**: Fase 1
-- **Aprendizajes para fases siguientes**: —
+- **Aprendizajes para fases siguientes**: Lighthouse local: SEO 100 (supera el ≥95). Performance 80 (LCP 3.7s, dominado por el server-response-time de `next start` local ~660ms; en el edge de Vercel baja mucho). `next/image` con priority + sizes correctos ya aplicados. **Pendiente para la Fase 8 (QA): re-medir Core Web Vitals sobre el deploy en vivo y cerrar Performance ≥ 90.**
 - **Ajustes a la Directiva de Stack**: —
 - **Iniciada**: 2026-09-10
-- **Completada**: —
+- **Completada**: 2026-09-10
 
 ### Fase 3: Reservas de alojamiento (self-service)
 - **Estado**: EN PROGRESO
