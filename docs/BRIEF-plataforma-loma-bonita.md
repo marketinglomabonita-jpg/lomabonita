@@ -98,14 +98,14 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 > Diario vivo del proyecto y fuente de las fases del PRP único. Cada fase entrega algo verificable en la URL oculta del demo.
 
 ### Fase 0: Fundación, seguridad y pipeline del demo
-- **Estado**: EN PROGRESO
+- **Estado**: COMPLETADO
 - **Objetivo high-level**: dejar la app Next.js en pie sobre una rama del repo, con Supabase cableado, auth base, capa de seguridad, sistema de diseño Eje Cafetero, e imágenes migradas y optimizadas, desplegándose automáticamente a la URL oculta de Vercel con `noindex` global.
 - **Criterios observables**: `npm run build` y `npx tsc --noEmit` pasan sin errores; la URL del demo (`lomabonita-demo.vercel.app` o `demo.lomabonitahotel.com`) carga la app Next y responde `X-Robots-Tag: noindex` y `Content-Security-Policy` en las cabeceras (`curl -I`); `GET /robots.txt` en el demo devuelve `Disallow: /`; un `curl` a una ruta del panel sin sesión redirige a login; `git log origin/main` sigue mostrando solo el commit del sitio estático (no se tocó `main`); las imágenes del prototipo están en `public/` como WebP < 300 KB c/u (control negativo: no queda ningún `.jpeg` de varios MB en el árbol de la rama).
 - **Depende de**: —
 - **Aprendizajes para fases siguientes**: —
 - **Ajustes a la Directiva de Stack**: —
 - **Iniciada**: 2026-09-10
-- **Completada**: —
+- **Completada**: 2026-09-10
 
 ### Fase 1: Sitio público, Inicio rediseñada y páginas de servicio
 - **Estado**: EN PROGRESO

@@ -393,7 +393,20 @@ No hay aprendizajes heredados — primer PRP del brief. `CLAUDE.md` no tiene aú
 
 > Esta seccion crece con cada error durante la ejecucion del bucle-agentico. Se filtra al cierre con los criterios discriminativos.
 
-_(vacía al inicio)_
+### 2026-09-10: El production branch de Vercel no se puede cambiar por API (trampa del terreno)
+- **Error**: `POST /v11/projects` y `PATCH /v9/projects/{id}` ignoran `gitRepository.productionBranch` / `link.productionBranch` (siempre queda `main`); `PATCH {"productionBranch":...}` da 400; `/v1/projects/{id}/branch` da 404. El proyecto `lomabonita-demo` quedó con production branch = `main`.
+- **Fix**: desplegar `plataforma-v2` a `target: production` con `POST /v13/deployments` + `gitSource.ref=plataforma-v2`. Cada fase: tras el push de `plataforma-v2`, disparar un deploy de producción por API (el director controla el pipeline). Alternativa de conveniencia: el usuario cambia el dropdown en Vercel → Settings → Git → Production Branch a `plataforma-v2` (una vez).
+- **Aplicar en**: cualquier fase que dependa de que `lomabonita-demo.vercel.app` refleje el último push; y en el runbook del corte (Fase 8).
+
+### 2026-09-10: Vercel Authentication (SSO) viene ON por defecto en proyectos nuevos
+- **Error**: el proyecto nuevo trae `ssoProtection: { deploymentType: "all_except_custom_domains" }` → toda la app redirige a `vercel.com/sso-api`; el propietario (no miembro del team) no puede abrir el enlace.
+- **Fix**: `PATCH /v9/projects/{id}` con `{"ssoProtection":null,"passwordProtection":null}`. El demo ya va `noindex` + sin enlaces, así que es seguro. Verificar SIEMPRE tras crear un proyecto de demo.
+- **Aplicar en**: creación de cualquier proyecto Vercel destinado a compartirse por enlace.
+
+### 2026-09-10: `next lint` fue removido en Next 16
+- **Error**: `next lint` → "Invalid project directory provided, no such directory: .../lint".
+- **Fix**: `eslint.config.mjs` flat nativo (`@eslint/js` + `typescript-eslint` + `eslint-plugin-react-hooks` + `@next/eslint-plugin-next`), scope `src/**` + config raíz, ignorando el tooling Praxis. `FlatCompat` + `eslint-config-next` 16.3.4 rompe con ESLint 9 ("Converting circular structure to JSON") — no usarlo.
+- **Aplicar en**: cualquier proyecto Praxis nuevo sobre Next 16.
 
 ---
 
