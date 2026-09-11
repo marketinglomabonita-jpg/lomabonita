@@ -23,7 +23,9 @@ export const SITE_ORIGIN =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
 
 /** Rutas de gestion: nunca indexables, nunca en el sitemap, protegidas por middleware. */
-export const MANAGED_PATH_PREFIXES = ['/admin', '/cocina', '/mesa'] as const
+// '/mesa' (pedido del comensal) es deliberadamente PÚBLICA (se llega por QR en la
+// mesa, sin login) — solo /admin y /cocina son superficies de staff.
+export const MANAGED_PATH_PREFIXES = ['/admin', '/cocina'] as const
 
 export function isManagedPath(pathname: string): boolean {
   return MANAGED_PATH_PREFIXES.some(
