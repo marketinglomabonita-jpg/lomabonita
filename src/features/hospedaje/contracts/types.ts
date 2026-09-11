@@ -75,3 +75,54 @@ export const createReservationSchema = z.object({
 })
 
 export type CreateReservationInput = z.infer<typeof createReservationSchema>
+
+/** Notificación del panel */
+export type Notification = {
+  id: string
+  tipo: 'reserva' | 'lead' | 'pedido' | 'sistema'
+  titulo: string
+  cuerpo: string | null
+  ref_table: string | null
+  ref_id: string | null
+  leida: boolean
+  created_at: string
+}
+
+/** Esquema para actualizar estado de reserva */
+export const updateReservationStatusSchema = z.object({
+  reservation_id: z.string().uuid(),
+  nuevo_estado: z.enum(['confirmada', 'rechazada', 'cancelada']),
+})
+
+export type UpdateReservationStatusInput = z.infer<typeof updateReservationStatusSchema>
+
+/** Esquema para crear/editar room_type */
+export const roomTypeFormSchema = z.object({
+  slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
+  nombre: z.string().min(1),
+  descripcion: z.string().optional(),
+  capacidad_max: z.number().int().positive(),
+  cama: z.string().optional(),
+  precio_noche_muestra: z.number().positive(),
+})
+
+export type RoomTypeFormInput = z.infer<typeof roomTypeFormSchema>
+
+/** Esquema para crear/editar room */
+export const roomFormSchema = z.object({
+  room_type_id: z.string().uuid(),
+  nombre: z.string().min(1),
+  activa: z.boolean().default(true),
+})
+
+export type RoomFormInput = z.infer<typeof roomFormSchema>
+
+/** Esquema para crear room_block */
+export const roomBlockFormSchema = z.object({
+  room_id: z.string().uuid(),
+  fecha_inicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  fecha_fin: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  motivo: z.string().optional(),
+})
+
+export type RoomBlockFormInput = z.infer<typeof roomBlockFormSchema>

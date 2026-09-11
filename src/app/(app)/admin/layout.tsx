@@ -1,6 +1,12 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { createClient } from '@/core/adapters/supabase/server'
+
+export const metadata: Metadata = {
+  title: 'Panel · Loma Bonita',
+  robots: 'noindex',
+}
 
 /**
  * Shell del panel unificado. Defensa en profundidad: el middleware ya redirige a
@@ -9,7 +15,7 @@ import { createClient } from '@/core/adapters/supabase/server'
  */
 const SECCIONES = [
   { href: '/admin', label: 'Resumen', activa: true },
-  { href: '/admin/hospedaje', label: 'Hospedaje', activa: false },
+  { href: '/admin/hospedaje', label: 'Hospedaje', activa: true },
   { href: '/admin/restaurante', label: 'Restaurante', activa: false },
   { href: '/admin/pasadias', label: 'Pasadías', activa: false },
   { href: '/admin/experiencias', label: 'Experiencias', activa: false },
