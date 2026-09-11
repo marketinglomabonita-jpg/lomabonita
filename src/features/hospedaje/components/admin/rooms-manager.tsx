@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { listRooms, listRoomTypes, createRoom } from '../../api/admin-actions'
 import { Button } from '@/core/ui/button'
@@ -30,13 +30,13 @@ export function RoomsManager() {
   const router = useRouter()
 
   // Cargar datos
-  useState(() => {
+  useEffect(() => {
     Promise.all([listRooms(), listRoomTypes()]).then(([roomsData, typesData]) => {
       setRooms(roomsData)
       setRoomTypes(typesData)
       setLoading(false)
     })
-  })
+  }, [])
 
   const handleCreateRoom = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

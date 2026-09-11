@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { listReservations, updateReservationStatus } from '../../api/admin-actions'
 import { Badge } from '@/core/ui/badge'
@@ -39,12 +39,12 @@ export function ReservationsList() {
   const router = useRouter()
 
   // Cargar reservas al montar
-  useState(() => {
+  useEffect(() => {
     listReservations().then((data) => {
       setReservations(data)
       setLoading(false)
     })
-  })
+  }, [])
 
   const handleStatusChange = async (
     reservationId: string,

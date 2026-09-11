@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { listRoomBlocks, listRooms, createRoomBlock, deleteRoomBlock } from '../../api/admin-actions'
 import { Button } from '@/core/ui/button'
@@ -29,13 +29,13 @@ export function BlocksManager() {
   const router = useRouter()
 
   // Cargar datos
-  useState(() => {
+  useEffect(() => {
     Promise.all([listRoomBlocks(), listRooms()]).then(([blocksData, roomsData]) => {
       setBlocks(blocksData)
       setRooms(roomsData)
       setLoading(false)
     })
-  })
+  }, [])
 
   const handleCreateBlock = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
