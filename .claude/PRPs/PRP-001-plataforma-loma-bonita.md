@@ -403,6 +403,11 @@ No hay aprendizajes heredados — primer PRP del brief. `CLAUDE.md` no tiene aú
 - **Fix**: `PATCH /v9/projects/{id}` con `{"ssoProtection":null,"passwordProtection":null}`. El demo ya va `noindex` + sin enlaces, así que es seguro. Verificar SIEMPRE tras crear un proyecto de demo.
 - **Aplicar en**: creación de cualquier proyecto Vercel destinado a compartirse por enlace.
 
+### 2026-09-11 (Fase 5, terreno de seguridad): `handle_new_user` (Fase 0) da rol de staff a CUALQUIER alta en auth.users
+- **Hallazgo**: el trigger `handle_new_user` (migración `0001`) crea `profiles` con `role='recepcion', activo=true` para todo usuario nuevo de `auth.users`, y `is_staff()` incluye `recepcion` — así que cualquier alta en Auth es staff de facto. Hoy no es explotable porque no hay signup público (`shouldCreateUser: false` en el login OTP), pero es una bomba de tiempo si alguna fase futura habilita registro público (ej. cuentas de huésped, leads con cuenta).
+- **No se corrigió**: la migración `0001` es invariante de fases posteriores por encargo explícito. Queda documentado aquí para que la fase que toque auth de nuevo (o antes del corte a producción) decida: el alta automática de `profiles` debería crear rol `null`/`ninguno` (no staff) y que un owner/admin promueva explícitamente, o el trigger debe distinguir altas de staff (invitadas por un admin) de cualquier otra.
+- **Aplicar en**: cualquier fase que toque auth, señup público, o el runbook de corte a producción (Fase 8) — revisar antes de exponer registro público.
+
 ### 2026-09-10 (Fase 3): nuqs — adapter obligatorio + omite valores default de la URL
 - **Error**: (1) `useQueryStates`/`useQueryState` de `nuqs` lanza `[nuqs] requires an adapter` en runtime — `/hospedaje` devolvía 500 aunque `next build` pasaba en verde. (2) `parseAsInteger.withDefault(2)`: cuando el valor iguala el default, nuqs lo OMITE de la URL; el server `hasSearch = params.checkIn && params.checkOut && params.adultos` era falso con 2 adultos → el buscador no devolvía nada.
 - **Fix**: `<NuqsAdapter>` de `nuqs/adapters/next/app` en `src/app/(public)/layout.tsx`. `hasSearch` exige solo `checkIn && checkOut`; `searchParamsSchema.adultos` con `.default(2)`.

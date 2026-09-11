@@ -148,14 +148,14 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 - **Completada**: 2026-09-10
 
 ### Fase 5: Pasadías, experiencias y tickets
-- **Estado**: EN PROGRESO
+- **Estado**: COMPLETADO
 - **Objetivo high-level**: productos de pasadía + experiencias agregables (karts, cabalgata, balsaje) con tarifas de prueba, flujo de reserva/emisión de tickets sin pago con código/QR, y la sección de Pasadías en el panel (cupos por fecha, tickets emitidos, check-in).
 - **Criterios observables**: elegir pasadía + fecha + Nº personas + experiencias agregadas calcula un total de prueba correcto (suma verificable); completar la solicitud genera un ticket con código único y QR escaneable que resuelve a la página del ticket; superar el cupo configurado de una fecha bloquea la emisión (control negativo); el ticket emitido aparece en el panel y se puede marcar "usado"; el QR se ve y funciona en móvil.
 - **Depende de**: Fase 4
 - **Aprendizajes para fases siguientes**: —
 - **Ajustes a la Directiva de Stack**: —
 - **Iniciada**: 2026-09-10
-- **Completada**: —
+- **Completada**: 2026-09-11
 
 ### Fase 6: Portafolio de experiencias corporativas + captación de leads
 - **Estado**: EN PROGRESO
