@@ -168,14 +168,14 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 - **Completada**: 2026-09-11
 
 ### Fase 7: Restaurante — carta, pedido en sitio y pantalla de cocina (KDS)
-- **Estado**: EN PROGRESO
+- **Estado**: COMPLETADO
 - **Objetivo high-level**: esquema de carta + siembra con platos típicos del Eje Cafetero y un plato del día, página pública de carta, flujo de pedido para el comensal en mesa (identificado por mesa/QR), pantalla de cocina en tiempo real con estados, y sección de Restaurante en el panel (CRUD de carta, plato del día, historial de pedidos).
 - **Criterios observables**: la carta pública lista los platos sembrados por categoría y destaca el plato del día; desde una mesa el comensal arma un pedido y al enviarlo aparece en < 3 s en la pantalla de cocina (Supabase Realtime, control positivo); avanzar el estado en cocina (recibido → en preparación → listo) se refleja en la vista del comensal; un pedido vacío no se puede enviar (control negativo); editar la carta o cambiar el plato del día desde el panel se ve reflejado en la carta pública; todo el flujo del comensal es usable en móvil.
 - **Depende de**: Fase 4
-- **Aprendizajes para fases siguientes**: —
+- **Aprendizajes para fases siguientes**: (a) La lección de la Fase 6 (`.select()` tras un insert anónimo rompe con 401/42501) se le repitió explícitamente a los dos ejecutores de esta fase y AMBOS la aplicaron bien en `createOrder` — repetir la regla en el encargo funciona. (b) **Espejo del mismo gotcha del lado del VERIFICADOR**: al probar un insert anónimo con curl, usar siempre `Prefer: return=minimal` — pedir `return=representation` para "confirmar que se creó" da el mismo 401 aunque la policy esté bien, y engaña al verificador igual que al código de la app. (c) `/mesa` tuvo que corregirse a mitad de la fase porque había quedado protegida por error desde la Fase 0 (estaba en `MANAGED_PATH_PREFIXES` junto con `/admin` y `/cocina`) — repasar los `MANAGED_PATH_PREFIXES` contra el propósito real de cada ruta antes de dar una fase por bien planeada. (d) Sonnet dejó crear/editar de la carta deshabilitado en la UI ("próxima iteración") aunque el backend ya existía completo — el director lo completó él mismo al detectarlo en el cierre: cuando un ejecutor dice "próxima iteración" sobre un criterio que el PRP sí pide, no es opcional, hay que cerrarlo.
 - **Ajustes a la Directiva de Stack**: —
 - **Iniciada**: 2026-09-10
-- **Completada**: —
+- **Completada**: 2026-09-11
 
 ### Fase 8: Páginas legales, consentimiento de cookies y cierre del demo
 - **Estado**: EN PROGRESO
