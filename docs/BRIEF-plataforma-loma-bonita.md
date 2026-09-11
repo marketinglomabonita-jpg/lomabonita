@@ -128,14 +128,14 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 - **Completada**: 2026-09-10
 
 ### Fase 3: Reservas de alojamiento (self-service)
-- **Estado**: EN PROGRESO
+- **Estado**: COMPLETADO
 - **Objetivo high-level**: esquema de datos de alojamiento con RLS + 11 habitaciones ficticias sembradas (parejas / familiares / grupales, aforo ~35), buscador público por fechas + adultos + niños, detalle de habitación, y flujo de solicitud de reserva sin pago con estados (solicitada → confirmada / rechazada).
 - **Criterios observables**: todas las tablas nuevas tienen `rowsecurity = true` (consulta a `pg_tables`); un usuario anónimo puede leer disponibilidad pero no `reservations` ajenas (test de policy); buscar un rango donde una habitación ya está bloqueada la excluye del resultado; enviar el formulario con fechas invertidas o cupo excedido es rechazado por Zod en el servidor (control negativo) y devuelve error legible; una solicitud válida crea una fila `reservations` en estado `solicitada` visible luego en el panel; el flujo completo se puede hacer en móvil (390px) sin fricción (agent-browser).
 - **Depende de**: Fase 0
-- **Aprendizajes para fases siguientes**: —
+- **Aprendizajes para fases siguientes**: (a) nuqs necesita `<NuqsAdapter>` en un layout — `next build` NO lo detecta (error solo en runtime). (b) nuqs omite de la URL los valores que igualan su `withDefault`, así que un `hasSearch` server-side que exija ese param se rompe con los defaults — exigir solo lo mínimo. (c) El ejecutor puede dejar policies RLS permisivas tras experimentos y cerrar con "tests pendientes": el director SIEMPRE corre los tests de policy + concurrencia + E2E él mismo, nunca los da por hechos.
 - **Ajustes a la Directiva de Stack**: —
 - **Iniciada**: 2026-09-10
-- **Completada**: —
+- **Completada**: 2026-09-10
 
 ### Fase 4: Panel de administración unificado + notificación de reservas
 - **Estado**: EN PROGRESO

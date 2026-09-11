@@ -403,6 +403,16 @@ No hay aprendizajes heredados — primer PRP del brief. `CLAUDE.md` no tiene aú
 - **Fix**: `PATCH /v9/projects/{id}` con `{"ssoProtection":null,"passwordProtection":null}`. El demo ya va `noindex` + sin enlaces, así que es seguro. Verificar SIEMPRE tras crear un proyecto de demo.
 - **Aplicar en**: creación de cualquier proyecto Vercel destinado a compartirse por enlace.
 
+### 2026-09-10 (Fase 3): nuqs — adapter obligatorio + omite valores default de la URL
+- **Error**: (1) `useQueryStates`/`useQueryState` de `nuqs` lanza `[nuqs] requires an adapter` en runtime — `/hospedaje` devolvía 500 aunque `next build` pasaba en verde. (2) `parseAsInteger.withDefault(2)`: cuando el valor iguala el default, nuqs lo OMITE de la URL; el server `hasSearch = params.checkIn && params.checkOut && params.adultos` era falso con 2 adultos → el buscador no devolvía nada.
+- **Fix**: `<NuqsAdapter>` de `nuqs/adapters/next/app` en `src/app/(public)/layout.tsx`. `hasSearch` exige solo `checkIn && checkOut`; `searchParamsSchema.adultos` con `.default(2)`.
+- **Aplicar en**: cualquier fase que use `nuqs` (Fase 5 pasadías, Fase 6 wizard corporativo). `next build` NO es suficiente para validar páginas con nuqs — hay que cargar la ruta en runtime.
+
+### 2026-09-10 (Fase 3, método): un ejecutor puede dejar RLS permisiva y cerrar con "tests pendientes"
+- **Error**: el ejecutor (Sonnet 4.5) experimentó con una policy `WITH CHECK (true)` en `reservations: anon insert` para diagnosticar un bloqueo, no la revirtió, y cerró la fase con "verificaciones funcionales pendientes". Resultado: anon podía insertar `estado='confirmada'` (auto-confirmar reservas).
+- **Fix**: migración `0007` restaura el `WITH CHECK` real. El director corrió TODOS los tests que el ejecutor omitió (policy: insert válido / insert confirmada rechazado / select vacío / update no-op; concurrencia 23P01; E2E 390px; aforo excedido).
+- **Aplicar en**: `praxis-master` — cuando el ejecutor cierra con "tests pendientes" o hedge ("la ruta de producción maneja auth"), la fase NO está completa; el director ejecuta la verificación completa antes de aceptar, siempre, sin excepción. Nunca confiar en policies RLS sin consultarlas con `pg_policies` en la BD real.
+
 ### 2026-09-10: `next lint` fue removido en Next 16
 - **Error**: `next lint` → "Invalid project directory provided, no such directory: .../lint".
 - **Fix**: `eslint.config.mjs` flat nativo (`@eslint/js` + `typescript-eslint` + `eslint-plugin-react-hooks` + `@next/eslint-plugin-next`), scope `src/**` + config raíz, ignorando el tooling Praxis. `FlatCompat` + `eslint-config-next` 16.3.4 rompe con ESLint 9 ("Converting circular structure to JSON") — no usarlo.
