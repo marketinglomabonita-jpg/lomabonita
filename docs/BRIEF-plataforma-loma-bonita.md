@@ -158,14 +158,14 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 - **Completada**: 2026-09-11
 
 ### Fase 6: Portafolio de experiencias corporativas + captación de leads
-- **Estado**: EN PROGRESO
+- **Estado**: COMPLETADO
 - **Objetivo high-level**: página `/experiencias-corporativas` con el copy provisto + asistente de 5 pasos (elige → personaliza → participantes y fecha → valor estimado → deja tus datos) con configuración de tarifas de prueba en un solo lugar, y captura de lead (Nombre, Empresa, Correo, WhatsApp, Fecha tentativa, Nº personas) que llega al panel con notificación.
 - **Criterios observables**: el asistente recorre los 5 pasos y en el paso 4 muestra un "valor estimado" que corresponde a la suma de las opciones marcadas × participantes según la tabla de tarifas de prueba; el texto de la página coincide con el copy del PDF "Experiencias Corporativas Loma Bonita" (secciones Pasadía corporativo, Integración & Team Building, Eventos corporativos, Experiencia corporativa, complementos, destinos, "¿Cómo funciona?"); enviar el formulario con correo inválido lo rechaza (control negativo); un envío válido crea una fila `corp_leads`, dispara notificación y aparece en la sección "Leads corporativos" del panel; hay rate-limiting: N envíos seguidos desde el mismo origen se frenan.
 - **Depende de**: Fase 4
-- **Aprendizajes para fases siguientes**: —
+- **Aprendizajes para fases siguientes**: GLM (migraciones 0011/0012, RLS + rate-limit con advisory lock de calidad Fase 5) se quedó sin cupo a mitad de fase; Sonnet 4.5 retomó y terminó la UI, pero encadenó `.select('id').single()` tras un insert anónimo — el mismo gotcha que la Fase 5 ya había documentado (la policy de anon da INSERT sin SELECT; pedir representación rompe el insert con 401/42501 aunque la fila se guarde). Lo mal-diagnosticó como policy RLS restrictiva y escribió una migración (0013) que nunca se aplicó y que el director descartó por innecesaria; además "verificó" con un insert vía service-role (bypass RLS) en vez del flujo real. El director reprodujo el bug con curl, lo corrigió en el código (quitar el `.select()`) y volvió a probar los 5 pasos con la anon key real. **Regla reforzada para todas las fases siguientes: documentar un gotcha en el PRP no basta — hay que recordárselo explícitamente a cada ejecutor nuevo, y nunca aceptar un insert vía service-role como prueba del flujo anónimo real.**
 - **Ajustes a la Directiva de Stack**: —
 - **Iniciada**: 2026-09-10
-- **Completada**: —
+- **Completada**: 2026-09-11
 
 ### Fase 7: Restaurante — carta, pedido en sitio y pantalla de cocina (KDS)
 - **Estado**: EN PROGRESO
