@@ -393,6 +393,16 @@ No hay aprendizajes heredados — primer PRP del brief. `CLAUDE.md` no tiene aú
 
 > Esta seccion crece con cada error durante la ejecucion del bucle-agentico. Se filtra al cierre con los criterios discriminativos.
 
+### 2026-09-11 (Fase 7, método): el espejo del gotcha `.select()` — el VERIFICADOR también puede falsear un 42501
+- **Error**: al verificar el insert anónimo de `orders` con curl contra la REST API, un insert con payload válido rebotaba 42501 ("new row violates row-level security policy") aunque la policy era correcta. Causa: el curl usaba `Prefer: return=representation`, que añade `RETURNING` al INSERT — sin policy de SELECT para anon, Postgres evalúa el RETURNING contra RLS y falla. Es la trampa de la Fase 6, pero del lado del que prueba.
+- **Fix**: verificar inserts anónimos SIEMPRE con `Prefer: return=minimal` (el equivalente exacto del `.insert()` sin `.select()` de la app) — con minimal el mismo payload pasó 201. Contra-proba decisiva: el insert directo por SQL con `set local role anon` funcionaba, delatando que la policy estaba bien y el artefacto estaba en la capa REST de la verificación.
+- **Aplicar en**: cualquier verificación futura de policies anon-insert-only vía curl/REST (QA de Fase 8, futuro POS). Regla: si el SQL como rol anon pasa pero el REST falla, revisar el header `Prefer` antes de tocar la migración.
+
+### 2026-09-11 (Fase 7, terreno): handoff sin gates — backslashes en imports y JSX en try/catch
+- **Error**: el ejecutor anterior cerró sin correr los gates. Quedaron: (1) un import con backslashes de Windows (`'@/features\restaurante\...'` — `\r` es un carriage return real, `\c`/`\p` escapes inútiles → tsc no encontraba el módulo); (2) JSX construido dentro de un try/catch (regla `react-hooks/error-boundaries`); (3) un import sin uso. Nada de esto saltaba "leyendo el código".
+- **Fix**: forward slashes en el import; datos dentro del try/catch y JSX fuera; import eliminado. `tsc`/`lint`/`build` en verde tras 3 correcciones.
+- **Aplicar en**: todo código generado o retomado en Windows — los gates detectan esto siempre; correrlos es parte de "casi completa", no un extra opcional.
+
 ### 2026-09-10: El production branch de Vercel no se puede cambiar por API (trampa del terreno)
 - **Error**: `POST /v11/projects` y `PATCH /v9/projects/{id}` ignoran `gitRepository.productionBranch` / `link.productionBranch` (siempre queda `main`); `PATCH {"productionBranch":...}` da 400; `/v1/projects/{id}/branch` da 404. El proyecto `lomabonita-demo` quedó con production branch = `main`.
 - **Fix**: desplegar `plataforma-v2` a `target: production` con `POST /v13/deployments` + `gitSource.ref=plataforma-v2`. Cada fase: tras el push de `plataforma-v2`, disparar un deploy de producción por API (el director controla el pipeline). Alternativa de conveniencia: el usuario cambia el dropdown en Vercel → Settings → Git → Production Branch a `plataforma-v2` (una vez).

@@ -5,7 +5,7 @@ import { isManagedPath, IS_DEMO } from '@/core/config/site'
 /**
  * Middleware:
  *  1. Refresca la sesion de Supabase en cada request (patron @supabase/ssr).
- *  2. Protege /admin, /cocina y /mesa: sin sesion -> redirige a /login.
+ *  2. Protege las rutas gestionadas (/admin, /cocina): sin sesion -> redirige a /login.
  *  3. En modo demo, marca TODA respuesta como noindex (cabecera, ademas del <meta>).
  */
 export async function middleware(request: NextRequest) {
