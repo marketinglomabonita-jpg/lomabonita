@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Montserrat, Fraunces } from 'next/font/google'
 import './globals.css'
 import { CANONICAL_ORIGIN, IS_DEMO, BUSINESS } from '@/core/config/site'
+import { GoogleAnalytics } from '@/features/marketing/components/google-analytics'
 
 const sans = Montserrat({
   subsets: ['latin'],
@@ -32,7 +33,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${sans.variable} ${display.variable} h-full`}>
-      <body className="min-h-full font-sans">{children}</body>
+      <body className="min-h-full font-sans">
+        {children}
+        <GoogleAnalytics />
+      </body>
     </html>
   )
 }

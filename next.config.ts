@@ -19,11 +19,11 @@ const supabaseHost = (() => {
 
 const csp = [
   `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline'${isDemo ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com${isDemo ? " 'unsafe-eval'" : ''}`,
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' data: blob: https://${supabaseHost}`,
   `font-src 'self' data:`,
-  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost}`,
+  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://www.google-analytics.com https://www.googletagmanager.com`,
   `frame-ancestors 'none'`,
   `base-uri 'self'`,
   `form-action 'self'`,
