@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
@@ -12,6 +13,8 @@ import { PageHero } from '@/features/marketing/components/page-hero'
 import { SectionHeading } from '@/features/marketing/components/section-heading'
 import { WhatsAppIcon } from '@/features/marketing/components/brand-icons'
 import { ROOMS } from '@/features/hospedaje/data/rooms'
+import { SearchForm } from '@/features/hospedaje/components/search-form'
+import { AvailabilityResults } from '@/features/hospedaje/components/availability-results'
 
 const PAGE_DESCRIPTION =
   'Hospedaje campestre en la Finca Hotel Loma Bonita (Piedras de Moler, Cartago): habitaciones para parejas, familias y grupos junto al Río La Vieja, a 40 minutos del Parque del Café y PANACA. Check-in 3:00 p.m. · check-out 1:00 p.m.'
@@ -30,7 +33,19 @@ const HORARIOS = [
   { icon: Clock, label: 'Reservas', value: BUSINESS.hours.reservas },
 ]
 
-export default function HospedajePage() {
+type Props = {
+  searchParams: Promise<{
+    checkIn?: string
+    checkOut?: string
+    adultos?: string
+    ninos?: string
+  }>
+}
+
+export default async function HospedajePage({ searchParams }: Props) {
+  const params = await searchParams
+  const hasSearch = params.checkIn && params.checkOut && params.adultos
+
   return (
     <>
       <JsonLd
@@ -63,6 +78,28 @@ export default function HospedajePage() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="border-b border-border bg-background py-12">
+        <div className="container space-y-6">
+          <SectionHeading
+            tag="Reserva en línea"
+            title="Consulta disponibilidad en tiempo real"
+            subtitle="Elige tus fechas y te mostramos las habitaciones disponibles."
+          />
+          <SearchForm />
+          {hasSearch && (
+            <Suspense
+              fallback={
+                <div className="rounded-lg border border-border bg-muted/40 p-6 text-center text-sm text-muted-foreground">
+                  Buscando disponibilidad...
+                </div>
+              }
+            >
+              <AvailabilityResults searchParams={params} />
+            </Suspense>
+          )}
         </div>
       </section>
 
@@ -126,8 +163,8 @@ export default function HospedajePage() {
               'mx-auto max-w-2xl rounded-lg border border-dashed border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground',
             )}
           >
-            La reserva en línea con disponibilidad en tiempo real llega muy pronto. Por
-            ahora cotizamos por WhatsApp o con el formulario de contacto.
+            También puedes cotizar por WhatsApp o con el formulario de contacto si prefieres
+            atención personalizada.
           </p>
         </div>
       </section>
