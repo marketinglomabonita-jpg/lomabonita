@@ -142,10 +142,10 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 - **Objetivo high-level**: un solo `/admin` con login y roles, vista general con notificaciones, y la sección de Hospedaje operativa (lista de reservas, cambio de estado, gestión de habitaciones y bloqueos de disponibilidad), generando una notificación por cada reserva entrante.
 - **Criterios observables**: `/admin` sin sesión redirige a login; con sesión de staff carga el shell con el menú de secciones (Hospedaje, Restaurante, Pasadías, Experiencias, Leads — las no construidas aún visibles como "próximamente"); crear una reserva desde el flujo público de la Fase 3 hace aparecer, sin recargar o con recarga simple, una notificación nueva en el panel y la reserva en la lista; confirmar/rechazar desde el panel cambia el estado y ese cambio se refleja en la disponibilidad pública (control positivo); un rol no-staff no puede entrar a `/admin` (control negativo).
 - **Depende de**: Fase 3
-- **Aprendizajes para fases siguientes**: —
+- **Aprendizajes para fases siguientes**: El ejecutor corrió los checks de BD (RLS/policies/trigger) pero no los flujos E2E ("requieren servidor corriendo") — el director los completó simulando a nivel de BD las mismas operaciones que hacen las Server Actions (confirmar/rechazar/bloquear) y probando /admin sin sesión. Login OTP real no se probó en navegador por falta de acceso al correo del staff (mauroz05@gmail.com) — queda para que el propietario lo confirme en la presentación.
 - **Ajustes a la Directiva de Stack**: —
 - **Iniciada**: 2026-09-10
-- **Completada**: —
+- **Completada**: 2026-09-10
 
 ### Fase 5: Pasadías, experiencias y tickets
 - **Estado**: EN PROGRESO
