@@ -1,28 +1,63 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Star, Edit, Trash2 } from 'lucide-react'
+import { Star, Edit, Trash2, Plus } from 'lucide-react'
 import { Button } from '@/core/ui/button'
+import { Input } from '@/core/ui/input'
+import { Label } from '@/core/ui/label'
+import { Checkbox } from '@/core/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/core/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/core/ui/select'
 import {
   listMenuItems,
   togglePlatoDelDia,
   deleteMenuItem,
+  createMenuItem,
+  updateMenuItem,
 } from '../api/admin-actions'
 import { getMenuCategories } from '../api/actions'
 import type { MenuItem, MenuCategory } from '../contracts/types'
+
+/** Slug automático a partir del nombre — evita que el staff tenga que pensar en eso. */
+function slugify(nombre: string): string {
+  return nombre
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
 
 export function CartaAdmin() {
   const [items, setItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<MenuItem | null>(null)
+
+  async function reload() {
+    const [its, cats] = await Promise.all([listMenuItems(), getMenuCategories()])
+    setItems(its)
+    setCategories(cats)
+  }
 
   useEffect(() => {
     async function load() {
       try {
-        const [its, cats] = await Promise.all([listMenuItems(), getMenuCategories()])
-        setItems(its)
-        setCategories(cats)
+        await reload()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar')
       } finally {
@@ -32,12 +67,22 @@ export function CartaAdmin() {
     load()
   }, [])
 
+  function openCreate() {
+    setEditing(null)
+    setFormError(null)
+    setIsDialogOpen(true)
+  }
+
+  function openEdit(item: MenuItem) {
+    setEditing(item)
+    setFormError(null)
+    setIsDialogOpen(true)
+  }
+
   const handleTogglePlatoDelDia = async (itemId: string) => {
     try {
       await togglePlatoDelDia({ menu_item_id: itemId })
-      // Recargar
-      const updated = await listMenuItems()
-      setItems(updated)
+      await reload()
     } catch (err) {
       console.error('Error al marcar plato del día:', err)
     }
@@ -45,12 +90,39 @@ export function CartaAdmin() {
 
   const handleDelete = async (itemId: string) => {
     if (!confirm('¿Eliminar este ítem de la carta?')) return
-
     try {
       await deleteMenuItem(itemId)
       setItems((prev) => prev.filter((i) => i.id !== itemId))
     } catch (err) {
       console.error('Error al eliminar:', err)
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setFormError(null)
+    const formData = new FormData(e.currentTarget)
+    const nombre = String(formData.get('nombre') ?? '').trim()
+
+    const payload = {
+      category_id: String(formData.get('category_id') ?? ''),
+      slug: editing ? editing.slug : slugify(nombre),
+      nombre,
+      descripcion: String(formData.get('descripcion') ?? '').trim() || undefined,
+      precio_muestra: Number(formData.get('precio_muestra')),
+      disponible: formData.get('disponible') === 'on',
+    }
+
+    try {
+      if (editing) {
+        await updateMenuItem({ id: editing.id, ...payload })
+      } else {
+        await createMenuItem(payload)
+      }
+      setIsDialogOpen(false)
+      await reload()
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Error al guardar el plato')
     }
   }
 
@@ -60,9 +132,7 @@ export function CartaAdmin() {
 
   if (error) {
     return (
-      <div className="rounded-md bg-destructive/10 px-4 py-3 text-destructive">
-        {error}
-      </div>
+      <div className="rounded-md bg-destructive/10 px-4 py-3 text-destructive">{error}</div>
     )
   }
 
@@ -73,6 +143,16 @@ export function CartaAdmin() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {items.length} plato{items.length === 1 ? '' : 's'} en la carta.
+        </p>
+        <Button size="sm" onClick={openCreate} disabled={categories.length === 0}>
+          <Plus className="size-4" />
+          Nuevo plato
+        </Button>
+      </div>
+
       {itemsByCategory.map(
         (category) =>
           category.items.length > 0 && (
@@ -102,9 +182,7 @@ export function CartaAdmin() {
                         )}
                       </div>
                       {item.descripcion && (
-                        <div className="text-sm text-muted-foreground">
-                          {item.descripcion}
-                        </div>
+                        <div className="text-sm text-muted-foreground">{item.descripcion}</div>
                       )}
                       <div className="mt-1 text-sm font-semibold text-primary">
                         ${item.precio_muestra.toLocaleString('es-CO')}
@@ -123,9 +201,9 @@ export function CartaAdmin() {
                       <Button
                         size="icon"
                         variant="ghost"
-                        title="Editar (próximamente)"
+                        title="Editar"
                         className="size-8"
-                        disabled
+                        onClick={() => openEdit(item)}
                       >
                         <Edit className="size-4" />
                       </Button>
@@ -146,9 +224,67 @@ export function CartaAdmin() {
           )
       )}
 
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editing ? 'Editar plato' : 'Nuevo plato'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="category_id">Categoría</Label>
+              <Select name="category_id" required defaultValue={editing?.category_id}>
+                <SelectTrigger id="category_id">
+                  <SelectValue placeholder="Elige una categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="nombre">Nombre</Label>
+              <Input id="nombre" name="nombre" required defaultValue={editing?.nombre} maxLength={100} />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="descripcion">Descripción (opcional)</Label>
+              <Input id="descripcion" name="descripcion" defaultValue={editing?.descripcion ?? ''} maxLength={500} />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="precio_muestra">Precio de ejemplo (COP)</Label>
+              <Input
+                id="precio_muestra"
+                name="precio_muestra"
+                type="number"
+                min={0}
+                step={500}
+                required
+                defaultValue={editing?.precio_muestra}
+              />
+            </div>
+
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox name="disponible" defaultChecked={editing ? editing.disponible : true} />
+              Disponible en la carta
+            </label>
+
+            {formError && <p className="text-sm text-destructive">{formError}</p>}
+
+            <Button type="submit" className="w-full">
+              {editing ? 'Guardar cambios' : 'Crear plato'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <p className="text-center text-xs text-muted-foreground">
-        Crear/editar ítems se habilitará en una próxima iteración. Por ahora puedes
-        marcar el plato del día y eliminar ítems.
+        Los precios son de ejemplo — se reemplazan por los reales cuando el propietario los confirme.
       </p>
     </div>
   )
