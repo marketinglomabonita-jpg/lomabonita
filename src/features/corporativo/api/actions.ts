@@ -92,7 +92,7 @@ export async function calcularValorEstimado(params: {
 export async function createCorpLead(
   input: unknown,
 ): Promise<
-  | { success: true; lead_id: string }
+  | { success: true }
   | { success: false; error: string; code?: string }
 > {
   const parsed = createCorpLeadSchema.parse(input)
@@ -125,26 +125,26 @@ export async function createCorpLead(
     personas: parsed.personas,
   })
 
-  // Insertar (trigger de rate-limit + notificación)
-  const { data, error } = await supabase
-    .from('corp_leads')
-    .insert({
-      tipo_experiencia: parsed.tipo_experiencia,
-      personas: parsed.personas,
-      fecha_tentativa: parsed.fecha_tentativa || null,
-      incluir: parsed.incluir,
-      experiencias: parsed.experiencias,
-      destinos: parsed.destinos,
-      valor_estimado,
-      nombre: parsed.nombre,
-      empresa: parsed.empresa || null,
-      email: parsed.email,
-      whatsapp: parsed.whatsapp || null,
-      estado: 'nuevo',
-      origen_ip,
-    })
-    .select('id')
-    .single()
+  // Insertar (trigger de rate-limit + notificación).
+  // OJO: sin .select() a propósito. La policy de anon solo da INSERT (sin SELECT);
+  // encadenar .select() pide `Prefer: return=representation`, que exige poder leer
+  // la fila insertada y por eso el propio insert termina en 401/42501 aunque haya
+  // quedado bien guardada (mismo gotcha que documentó la Fase 5 en el PRP).
+  const { error } = await supabase.from('corp_leads').insert({
+    tipo_experiencia: parsed.tipo_experiencia,
+    personas: parsed.personas,
+    fecha_tentativa: parsed.fecha_tentativa || null,
+    incluir: parsed.incluir,
+    experiencias: parsed.experiencias,
+    destinos: parsed.destinos,
+    valor_estimado,
+    nombre: parsed.nombre,
+    empresa: parsed.empresa || null,
+    email: parsed.email,
+    whatsapp: parsed.whatsapp || null,
+    estado: 'nuevo',
+    origen_ip,
+  })
 
   if (error) {
     // Trigger LEAD_RATE_LIMIT devuelve P0001
@@ -158,5 +158,5 @@ export async function createCorpLead(
     throw new Error(`Error al crear lead: ${error.message}`)
   }
 
-  return { success: true, lead_id: data.id }
+  return { success: true }
 }
