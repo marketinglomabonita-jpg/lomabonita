@@ -19,7 +19,7 @@ const SECCIONES = [
   { href: '/admin/restaurante', label: 'Restaurante', activa: false },
   { href: '/admin/pasadias', label: 'Pasadías', activa: true },
   { href: '/admin/experiencias', label: 'Experiencias', activa: false },
-  { href: '/admin/leads', label: 'Leads corporativos', activa: false },
+  { href: '/admin/leads', label: 'Leads corporativos', activa: true },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

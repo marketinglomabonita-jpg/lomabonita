@@ -8,9 +8,9 @@ const PUBLIC_ROUTES = [
   '/restaurante',
   '/pasadias',
   '/experiencias',
+  '/experiencias-corporativas',
   '/galeria',
   '/contacto',
-  // '/experiencias-corporativas', // añadir en Fase 6
   // '/legal/privacidad', '/legal/datos-personales', '/legal/terminos', '/legal/cookies', // añadir en Fase 8
 ]
 
