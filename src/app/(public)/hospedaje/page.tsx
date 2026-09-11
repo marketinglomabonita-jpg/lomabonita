@@ -44,7 +44,9 @@ type Props = {
 
 export default async function HospedajePage({ searchParams }: Props) {
   const params = await searchParams
-  const hasSearch = params.checkIn && params.checkOut && params.adultos
+  // adultos/ninos pueden no venir en la URL (nuqs los omite cuando igualan su default);
+  // basta con las fechas para disparar la búsqueda.
+  const hasSearch = Boolean(params.checkIn && params.checkOut)
 
   return (
     <>

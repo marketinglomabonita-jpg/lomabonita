@@ -54,7 +54,8 @@ export type Reservation = {
 export const searchParamsSchema = z.object({
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  adultos: z.coerce.number().int().positive(),
+  // adultos/ninos pueden faltar en la URL cuando igualan el default de nuqs.
+  adultos: z.coerce.number().int().positive().default(2),
   ninos: z.coerce.number().int().nonnegative().default(0),
 })
 
