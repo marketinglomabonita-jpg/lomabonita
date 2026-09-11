@@ -20,6 +20,13 @@ const SERVICES = [
 
 const ZONA_CHIPS = ['Piedras de Moler', 'Vía Alcalá · Cartago', 'Eje Cafetero', 'Río La Vieja']
 
+const LEGAL_LINKS = [
+  { href: '/legal/terminos', label: 'Términos y Condiciones' },
+  { href: '/legal/privacidad', label: 'Política de Privacidad' },
+  { href: '/legal/datos-personales', label: 'Datos Personales' },
+  { href: '/legal/cookies', label: 'Cookies' },
+]
+
 export function SiteFooter() {
   const year = new Date().getFullYear()
   const logo = IMAGES['logo-finca-loma-bonita']
@@ -144,6 +151,20 @@ export function SiteFooter() {
           <p>
             © {year} {BUSINESS.legalName}. Todos los derechos reservados.
           </p>
+          <nav aria-label="Enlaces legales">
+            <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+              {LEGAL_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="transition-colors hover:text-white hover:underline"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
           <p>{BUSINESS.links.instagramHandle} · Piedras de Moler, Cartago</p>
         </div>
       </div>

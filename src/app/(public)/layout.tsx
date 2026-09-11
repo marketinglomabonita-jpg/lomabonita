@@ -2,6 +2,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { SiteHeader } from '@/features/marketing/components/site-header'
 import { SiteFooter } from '@/features/marketing/components/site-footer'
 import { WhatsAppFloat } from '@/features/marketing/components/whatsapp-float'
+import { CookieConsent } from '@/features/marketing/components/cookie-consent'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <SiteFooter />
         <WhatsAppFloat />
       </div>
+      <CookieConsent />
     </NuqsAdapter>
   )
 }

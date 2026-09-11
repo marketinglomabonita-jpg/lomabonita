@@ -178,14 +178,14 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 - **Completada**: 2026-09-11
 
 ### Fase 8: Páginas legales, consentimiento de cookies y cierre del demo
-- **Estado**: EN PROGRESO
+- **Estado**: COMPLETADO
 - **Objetivo high-level**: páginas legales (Privacidad, Tratamiento de Datos — Ley 1581, Aviso Legal / T&C, Cookies) enlazadas desde el footer, banner de consentimiento real que bloquea cookies no esenciales y recuerda la elección, QA final de flujos felices y de error con agent-browser, deploy del demo estable y entrega del guion de presentación para el propietario + runbook del corte a producción.
 - **Criterios observables**: las 4 páginas legales responden 200 y están enlazadas en el footer; en primera visita aparece el banner y, hasta aceptar, no se cargan scripts de analítica (control negativo: `network` sin peticiones a dominios de analítica antes del opt-in); tras aceptar, la preferencia persiste y el banner no reaparece al recargar ni en una segunda visita (control positivo); recorrido completo por agent-browser de los flujos clave (reserva, ticket, pedido, lead) con flujo feliz y flujo de error capturados en screenshot; el `runbook.md` describe el corte (merge a `main`, `SITE_MODE=production`, DNS) en pasos accionables.
 - **Depende de**: Fase 1, Fase 3, Fase 5, Fase 6, Fase 7
-- **Aprendizajes para fases siguientes**: —
+- **Aprendizajes para fases siguientes**: fix de createCorpLead (safeParse en Server Actions públicas) es patrón general — cualquier SA pública debe usar safeParse + retornar {success,error} en vez de .parse() que lanza excepción sin capturar.
 - **Ajustes a la Directiva de Stack**: —
 - **Iniciada**: 2026-09-10
-- **Completada**: —
+- **Completada**: 2026-09-11
 
 ## Supuestos (deben ser verdad)
 

@@ -84,3 +84,31 @@
     text-wrap: balance;
   }
 }
+
+@layer components {
+  /* Tipografia de lectura para documentos legales largos (Fase 8). */
+  .legal-prose h2 {
+    @apply mt-10 font-display text-xl font-semibold text-primary;
+  }
+  .legal-prose h2:first-child {
+    @apply mt-0;
+  }
+  .legal-prose h3 {
+    @apply mt-6 font-display text-base font-semibold text-cafe;
+  }
+  .legal-prose p {
+    @apply mt-4 text-[15px] leading-relaxed text-muted-foreground;
+  }
+  .legal-prose p:first-child {
+    @apply mt-0;
+  }
+  .legal-prose ul {
+    @apply mt-4 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-muted-foreground;
+  }
+  .legal-prose a {
+    @apply font-medium text-secondary underline underline-offset-4;
+  }
+  .legal-prose strong {
+    @apply font-semibold text-foreground;
+  }
+}

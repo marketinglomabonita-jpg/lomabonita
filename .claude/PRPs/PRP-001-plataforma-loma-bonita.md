@@ -438,6 +438,11 @@ No hay aprendizajes heredados — primer PRP del brief. `CLAUDE.md` no tiene aú
 - **Fix**: `eslint.config.mjs` flat nativo (`@eslint/js` + `typescript-eslint` + `eslint-plugin-react-hooks` + `@next/eslint-plugin-next`), scope `src/**` + config raíz, ignorando el tooling Praxis. `FlatCompat` + `eslint-config-next` 16.3.4 rompe con ESLint 9 ("Converting circular structure to JSON") — no usarlo.
 - **Aplicar en**: cualquier proyecto Praxis nuevo sobre Next 16.
 
+### 2026-09-11 (Fase 8, código): Server Action pública con `.parse()` deja el UI colgado sin error visible
+- **Error**: `createCorpLead` (src/features/corporativo/api/actions.ts) usaba `createCorpLeadSchema.parse(input)` directo — cuando el usuario enviaba un email inválido, `.parse()` lanzaba una excepción que rompía la promesa del cliente, dejando el wizard-corporativo colgado en "Enviando..." para siempre sin mensaje de error visible. El usuario no sabía qué pasó ni podía reintentar.
+- **Fix**: cambio a `.safeParse(input)` + retorno estructurado `{success: false, error: string, code?: string}`. El wizard ahora muestra el error en UI ("Datos inválidos. Revisa el formulario.") y el usuario puede corregir y reenviar. Contra-prueba: correo válido → envía OK.
+- **Aplicar en**: TODAS las Server Actions públicas (sin sesión autenticada, expuestas a anon) — nunca usar `.parse()` directo; siempre `.safeParse()` + retornar `{success, error}` para que el cliente pueda mostrar el error en UI. Aplica a `createReservation`, `createTicket`, `createCorpLead`, futuros endpoints públicos de pedidos/contacto. El patrón general: cualquier SA pública debe devolver un discriminated union `{success: true} | {success: false, error: string}`, nunca lanzar excepciones sin capturar.
+
 ---
 
 ## Anti-patrones

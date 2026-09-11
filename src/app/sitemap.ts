@@ -11,7 +11,10 @@ const PUBLIC_ROUTES = [
   '/experiencias-corporativas',
   '/galeria',
   '/contacto',
-  // '/legal/privacidad', '/legal/datos-personales', '/legal/terminos', '/legal/cookies', // añadir en Fase 8
+  '/legal/privacidad',
+  '/legal/datos-personales',
+  '/legal/terminos',
+  '/legal/cookies',
 ]
 
 export default function sitemap(): MetadataRoute.Sitemap {

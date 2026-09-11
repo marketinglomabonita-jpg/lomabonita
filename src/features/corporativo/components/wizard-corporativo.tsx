@@ -142,8 +142,13 @@ export function WizardCorporativo() {
       whatsapp: state.whatsapp || undefined,
     }
 
-    const result = await createCorpLead(input)
+    const result = await createCorpLead(input).catch(() => null)
     setLoading(false)
+
+    if (!result) {
+      setError('No pudimos enviar tu solicitud. Inténtalo de nuevo en unos momentos.')
+      return
+    }
 
     if (!result.success) {
       setError(result.error)

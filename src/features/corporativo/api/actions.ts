@@ -95,7 +95,17 @@ export async function createCorpLead(
   | { success: true }
   | { success: false; error: string; code?: string }
 > {
-  const parsed = createCorpLeadSchema.parse(input)
+  // safeParse (no .parse): lanzar aqui rompe la promesa en el cliente y deja
+  // el wizard colgado en "Enviando..." sin mensaje visible.
+  const parsed = createCorpLeadSchema.safeParse(input)
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? 'Datos inválidos. Revisa el formulario.',
+      code: 'VALIDATION',
+    }
+  }
+  const data = parsed.data
   const supabase = await createClient()
 
   // IP del request (Vercel x-forwarded-for, fallback x-real-ip)
@@ -119,10 +129,10 @@ export async function createCorpLead(
 
   // Re-calcular valor en servidor (nunca confiar en cliente)
   const valor_estimado = await calcularValorEstimado({
-    incluir: parsed.incluir,
-    experiencias: parsed.experiencias,
-    destinos: parsed.destinos,
-    personas: parsed.personas,
+    incluir: data.incluir,
+    experiencias: data.experiencias,
+    destinos: data.destinos,
+    personas: data.personas,
   })
 
   // Insertar (trigger de rate-limit + notificación).
@@ -131,17 +141,17 @@ export async function createCorpLead(
   // la fila insertada y por eso el propio insert termina en 401/42501 aunque haya
   // quedado bien guardada (mismo gotcha que documentó la Fase 5 en el PRP).
   const { error } = await supabase.from('corp_leads').insert({
-    tipo_experiencia: parsed.tipo_experiencia,
-    personas: parsed.personas,
-    fecha_tentativa: parsed.fecha_tentativa || null,
-    incluir: parsed.incluir,
-    experiencias: parsed.experiencias,
-    destinos: parsed.destinos,
+    tipo_experiencia: data.tipo_experiencia,
+    personas: data.personas,
+    fecha_tentativa: data.fecha_tentativa || null,
+    incluir: data.incluir,
+    experiencias: data.experiencias,
+    destinos: data.destinos,
     valor_estimado,
-    nombre: parsed.nombre,
-    empresa: parsed.empresa || null,
-    email: parsed.email,
-    whatsapp: parsed.whatsapp || null,
+    nombre: data.nombre,
+    empresa: data.empresa || null,
+    email: data.email,
+    whatsapp: data.whatsapp || null,
     estado: 'nuevo',
     origen_ip,
   })
