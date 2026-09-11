@@ -138,7 +138,7 @@ Tengo permiso para rehacer el diseño actual: lo quiero moderno y bien cuidado, 
 - **Completada**: 2026-09-10
 
 ### Fase 4: Panel de administración unificado + notificación de reservas
-- **Estado**: EN PROGRESO
+- **Estado**: COMPLETADO
 - **Objetivo high-level**: un solo `/admin` con login y roles, vista general con notificaciones, y la sección de Hospedaje operativa (lista de reservas, cambio de estado, gestión de habitaciones y bloqueos de disponibilidad), generando una notificación por cada reserva entrante.
 - **Criterios observables**: `/admin` sin sesión redirige a login; con sesión de staff carga el shell con el menú de secciones (Hospedaje, Restaurante, Pasadías, Experiencias, Leads — las no construidas aún visibles como "próximamente"); crear una reserva desde el flujo público de la Fase 3 hace aparecer, sin recargar o con recarga simple, una notificación nueva en el panel y la reserva en la lista; confirmar/rechazar desde el panel cambia el estado y ese cambio se refleja en la disponibilidad pública (control positivo); un rol no-staff no puede entrar a `/admin` (control negativo).
 - **Depende de**: Fase 3
