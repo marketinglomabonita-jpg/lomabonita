@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import { CalendarCheck, Check, Clock, ParkingCircle, ShieldCheck, Sun, Ticket } from 'lucide-react'
+import { createClient } from '@/core/adapters/supabase/server'
 import { BUSINESS } from '@/core/config/site'
 import { IMAGES, type ImageAsset } from '@/core/lib/images'
 import { breadcrumbJsonLd, buildPageMetadata, JsonLd } from '@/core/lib/seo'
@@ -10,6 +11,8 @@ import { waLink } from '@/core/lib/contact'
 import { PageHero } from '@/features/marketing/components/page-hero'
 import { SectionHeading } from '@/features/marketing/components/section-heading'
 import { WhatsAppIcon } from '@/features/marketing/components/brand-icons'
+import { TicketBuilder } from '@/features/pasadias/components/ticket-builder'
+import type { Experience, PassProduct } from '@/features/pasadias/contracts/types'
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Pasadía en Cartago — Piscina, almuerzo típico y diversión en el Eje Cafetero',
@@ -19,6 +22,9 @@ export const metadata: Metadata = buildPageMetadata({
   image: IMAGES['piscina-recreativa'],
   imageAlt: 'Piscina recreativa de la Finca Loma Bonita',
 })
+
+// Precios y disponibilidad vienen de la BD; no congelarlos en el build.
+export const dynamic = 'force-dynamic'
 
 const INCLUYE = [
   'Piscina tropical con zonas seguras para niños',
@@ -45,7 +51,18 @@ const ZONAS: { image: ImageAsset; alt: string; caption: string }[] = [
   { image: IMAGES['zona-de-desanso'], alt: 'Zonas de descanso rodeadas de jardines', caption: 'Zonas de descanso' },
 ]
 
-export default function PasadiasPage() {
+export default async function PasadiasPage() {
+  const supabase = await createClient()
+
+  const [{ data: products, error: productsError }, { data: experiences, error: expError }] =
+    await Promise.all([
+      supabase.from('pass_products').select('*').order('created_at', { ascending: true }),
+      supabase.from('experiences').select('*').order('precio_persona_muestra', { ascending: true }),
+    ])
+
+  if (productsError) console.error('Error loading pass_products:', productsError)
+  if (expError) console.error('Error loading experiences:', expError)
+
   return (
     <>
       <JsonLd
@@ -61,6 +78,20 @@ export default function PasadiasPage() {
         image={IMAGES['piscina-recreativa']}
         imageAlt="Piscina recreativa de la Finca Loma Bonita"
       />
+
+      <section className="border-b border-border bg-muted/40 py-16" id="ticket">
+        <div className="container max-w-3xl space-y-6">
+          <SectionHeading
+            tag="Tickets en línea"
+            title="Arma tu pasadía y solicita tu ticket"
+            subtitle="Elige fecha, número de personas y las experiencias que quieras sumar. Recibirás un ticket con código y QR para presentar en la entrada — sin pago en línea."
+          />
+          <TicketBuilder
+            products={(products ?? []) as PassProduct[]}
+            experiences={(experiences ?? []) as Experience[]}
+          />
+        </div>
+      </section>
 
       <section className="py-16">
         <div className="container grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
@@ -140,8 +171,11 @@ export default function PasadiasPage() {
           </div>
           <p className="mx-auto mt-8 flex max-w-2xl items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-card px-4 py-3 text-center text-sm text-muted-foreground">
             <Ticket className="size-4 shrink-0" aria-hidden="true" />
-            La compra de tickets en línea llega muy pronto. Por ahora reservamos por
-            WhatsApp o formulario.
+            Los tickets de pasadía ya se solicitan en línea:{' '}
+            <Link href="#ticket" className="font-medium text-primary hover:underline">
+              arma tu pasadía aquí
+            </Link>
+            . También atendemos por WhatsApp.
           </p>
         </div>
       </section>
