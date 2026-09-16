@@ -1,49 +1,63 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
-import { Check, Utensils } from 'lucide-react'
+import { ChefHat, Utensils } from 'lucide-react'
 import { IMAGES } from '@/core/lib/images'
 import {
   breadcrumbJsonLd,
   buildPageMetadata,
+  faqJsonLd,
   JsonLd,
   restaurantJsonLd,
 } from '@/core/lib/seo'
 import { buttonVariants } from '@/core/ui/button'
 import { waLink } from '@/core/lib/contact'
+import { Faq, type FaqItem } from '@/features/marketing/components/faq'
 import { PageHero } from '@/features/marketing/components/page-hero'
 import { SectionHeading } from '@/features/marketing/components/section-heading'
+import { WhatsAppBooking } from '@/features/marketing/components/whatsapp-booking'
 import { WhatsAppIcon } from '@/features/marketing/components/brand-icons'
-import {
-  getMenuCategories,
-  getMenuItems,
-  getPlatoDelDia,
-} from '@/features/restaurante/api/actions'
+import { formatCop } from '@/core/lib/money'
+import { DISHES, HOUSE_DISH } from '@/features/restaurante/data/menu'
 
-const PAGE_DESCRIPTION =
-  'Restaurante campestre en la Finca Loma Bonita: fiambre tradicional, almuerzos campesinos, desayunos con vista y la mejor sazón típica del Eje Cafetero, a pasos del Río La Vieja (Piedras de Moler, Cartago).'
+const DISH_PRICE = formatCop(DISHES[0].price)
+
+const PAGE_DESCRIPTION = `Restaurante campestre en Cartago, vía Alcalá: mojarra frita, sancocho, chicharrón, fiambre y cocina típica desde ${DISH_PRICE}. Plato de la casa estilo bandeja paisa por ${formatCop(HOUSE_DISH.price)}, con vista a la piscina.`
 
 export const metadata: Metadata = buildPageMetadata({
-  title: 'Restaurante campestre en el Eje Cafetero — Comida típica en Cartago',
+  title: 'Restaurante campestre en Cartago — Comida típica del Eje Cafetero',
   description: PAGE_DESCRIPTION,
   path: '/restaurante',
-  image: IMAGES['fiambre-tradicional-restaurante'],
-  imageAlt: 'Fiambre tradicional del restaurante campestre Loma Bonita',
+  image: IMAGES['almuerzo-tipico-vertical'],
+  imageAlt: 'Almuerzo típico del restaurante campestre de Finca Hotel Loma Bonita',
 })
 
-const DESTACADOS = [
-  'Platos típicos de la región, con la sazón de siempre',
-  'Fiambre tradicional y almuerzos campesinos',
-  'Desayunos campestres con vista al paisaje',
-  'Pescado frito y especialidades locales',
-  'Atención para pasadías, hospedajes y eventos',
+const FOTOS = [
+  { image: IMAGES['almuerzo-pezcado-vertical'], alt: 'Almuerzo de pescado en el restaurante campestre', caption: 'Pescado del día' },
+  { image: IMAGES['fiambre-tradicional-restaurante'], alt: 'Fiambre tradicional envuelto en hoja de plátano', caption: 'Fiambre tradicional' },
+  { image: IMAGES['restaurante-vista-a-la-piscina-vertical'], alt: 'Mesas del restaurante con vista a la piscina', caption: 'Vista a la piscina' },
+  { image: IMAGES['vistantes-restaurante-vertical'], alt: 'Visitantes almorzando en el restaurante campestre', caption: 'Almuerzo en familia' },
 ]
 
-const FOTOS = [
-  { image: IMAGES['fiambre-tradicional-restaurante'], alt: 'Fiambre tradicional colombiano envuelto en hoja de plátano', caption: 'Fiambre tradicional' },
-  { image: IMAGES['restaurante-vista-a-la-piscina-vertical'], alt: 'Mesa del restaurante con vista a la piscina', caption: 'Vista a la piscina' },
-  { image: IMAGES['almuerzo-tipico-vertical'], alt: 'Almuerzo típico de la región', caption: 'Almuerzo típico' },
-  { image: IMAGES['desayuno-vista-a-la-piscina-y-el-paisaje'], alt: 'Desayuno campestre con vistas a la piscina y el paisaje', caption: 'Desayuno con vista' },
+const FAQS: FaqItem[] = [
+  {
+    question: '¿Cuánto cuesta almorzar en el restaurante de Loma Bonita?',
+    answer: `Todos los platos de la carta cuestan ${DISH_PRICE} y el Plato de la Casa, nuestra versión de la bandeja paisa, cuesta ${formatCop(HOUSE_DISH.price)}.`,
+  },
+  {
+    question: '¿Qué platos tienen?',
+    answer: `Mojarra frita, pescado guisado, cerdo a la plancha, pollo a la plancha, sancocho bifásico, fiambre, chicharrón y el Plato de la Casa.`,
+  },
+  {
+    question: '¿El almuerzo está incluido en la pasadía?',
+    answer:
+      'Sí. Todos los planes de pasadía incluyen almuerzo: eliges entre las opciones disponibles ese día.',
+  },
+  {
+    question: '¿Puedo reservar mesa para un grupo o una celebración?',
+    answer:
+      'Sí. Escríbenos por WhatsApp con la fecha y el número de personas y te confirmamos disponibilidad. Las reservas están sujetas a disponibilidad.',
+  },
 ]
 
 export default function RestaurantePage() {
@@ -51,8 +65,9 @@ export default function RestaurantePage() {
     <>
       <JsonLd
         data={restaurantJsonLd({
-          image: IMAGES['fiambre-tradicional-restaurante'],
+          image: IMAGES['almuerzo-tipico-vertical'],
           description: PAGE_DESCRIPTION,
+          menu: [HOUSE_DISH, ...DISHES],
         })}
       />
       <JsonLd
@@ -61,62 +76,120 @@ export default function RestaurantePage() {
           { name: 'Restaurante', path: '/restaurante' },
         ])}
       />
+      <JsonLd data={faqJsonLd(FAQS)} />
+
       <PageHero
-        tag="Gastronomía"
-        title="Restaurante campestre"
-        description="Disfruta de la mejor sazón típica de la región: platos tradicionales con ingredientes frescos de la zona para deleitar tu paladar mientras disfrutas del aire libre."
-        image={IMAGES['fiambre-tradicional-restaurante']}
-        imageAlt="Fiambre tradicional del restaurante campestre"
+        tag="Restaurante campestre en Cartago"
+        title="Sazón de pueblo, con vista a la piscina"
+        description={`Cocina típica colombiana en plena vía Cartago–Alcalá: pescado, sancocho, chicharrón y fiambre desde ${DISH_PRICE}. Almuerza al aire libre, rodeado de montaña.`}
+        image={IMAGES['almuerzo-tipico-vertical']}
+        imageAlt="Almuerzo típico del restaurante campestre"
       />
 
-      <section className="py-16">
+      <section className="py-16" id="carta">
+        <div className="container max-w-5xl space-y-10">
+          <SectionHeading
+            tag="Nuestra carta"
+            title="Platos típicos, precios de casa"
+            subtitle={`Todos los platos a ${DISH_PRICE}. El Plato de la Casa, a ${formatCop(HOUSE_DISH.price)}.`}
+          />
+
+          <article className="overflow-hidden rounded-2xl border-2 border-accent/40 bg-accent/5 sm:grid sm:grid-cols-5">
+            <Image
+              src={IMAGES['almuerzo-tipico-vertical'].src}
+              alt="Almuerzo típico del restaurante Loma Bonita"
+              width={IMAGES['almuerzo-tipico-vertical'].w}
+              height={IMAGES['almuerzo-tipico-vertical'].h}
+              sizes="(min-width: 640px) 40vw, 100vw"
+              className="h-56 w-full object-cover sm:col-span-2 sm:h-full"
+            />
+            <div className="flex flex-col justify-center gap-3 p-6 sm:col-span-3 sm:p-8">
+              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-accent">
+                <ChefHat className="size-4" aria-hidden="true" />
+                Especialidad
+              </p>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="font-display text-3xl font-semibold text-cafe">{HOUSE_DISH.name}</h3>
+                <span className="text-3xl font-bold text-cafe">{formatCop(HOUSE_DISH.price)}</span>
+              </div>
+              <p className="text-muted-foreground">{HOUSE_DISH.description}</p>
+            </div>
+          </article>
+
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {DISHES.map((dish) => (
+              <li key={dish.name} className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                <div className="flex items-baseline gap-2">
+                  <h3 className="font-semibold text-cafe">{dish.name}</h3>
+                  <span
+                    className="mb-1 flex-1 border-b border-dotted border-border"
+                    aria-hidden="true"
+                  />
+                  <span className="font-semibold text-primary">{formatCop(dish.price)}</span>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">{dish.description}</p>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex flex-wrap justify-center gap-3">
+            <a
+              href={waLink('¡Hola! Quiero reservar mesa en el restaurante de Finca Hotel Loma Bonita. Fecha: ___ · Personas: ___')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: 'accent' })}
+            >
+              <WhatsAppIcon className="size-4" />
+              Reservar mesa
+            </a>
+            <Link href="/pasadias" className={buttonVariants({ variant: 'outline' })}>
+              <Utensils aria-hidden="true" />
+              Pasadía con almuerzo incluido
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-muted/40 py-16">
         <div className="container grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
           <div className="space-y-4">
             <SectionHeading
               align="left"
-              tag="Nuestra cocina"
-              title="Cocina tradicional del Eje Cafetero"
+              tag="Cocina típica del Eje Cafetero"
+              title="Lo que se come en un buen paseo de finca"
             />
             <p className="text-muted-foreground">
-              Nuestro restaurante está abierto para quienes disfrutan una pasadía, se
-              hospedan en la finca o celebran un evento. Preparamos recetas de la
-              tradición paisa y valluna con ingredientes frescos de la zona, servidas en
-              un ambiente fresco con vista a la piscina y a las montañas.
+              En Loma Bonita cocinamos lo que el paseo pide: una mojarra frita dorada, un
+              sancocho con dos carnes, el chicharrón crocante de la tradición paisa y el
+              fiambre de toda la vida, envuelto en hoja de plátano.
             </p>
-            <ul className="space-y-2.5 pt-1">
-              {DESTACADOS.map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <div className="flex flex-wrap gap-3 pt-3">
-              <a
-                href={waLink('¡Hola! Quiero consultar el menú y horarios del restaurante de Loma Bonita.')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={buttonVariants({ variant: 'accent' })}
-              >
-                <WhatsAppIcon className="size-4" />
-                Consultar por WhatsApp
-              </a>
-              <Link href="/contacto" className={buttonVariants({ variant: 'outline' })}>
-                <Utensils aria-hidden="true" />
-                Contacto
+            <p className="text-muted-foreground">
+              Si estás en Cartago y buscas dónde almorzar en el campo, o vienes de recorrer
+              Alcalá, Quimbaya o el Río La Vieja, nuestro restaurante te recibe con precios
+              justos, porciones generosas y mesas al aire libre con vista a la piscina.
+            </p>
+            <p className="text-sm">
+              ¿Vienes a pasar el día?{' '}
+              <Link href="/pasadias" className="font-medium text-primary hover:underline">
+                Todos nuestros planes de pasadía
+              </Link>{' '}
+              incluyen almuerzo. ¿Te quedas la noche?{' '}
+              <Link href="/hospedaje" className="font-medium text-primary hover:underline">
+                Mira el hospedaje
               </Link>
-            </div>
+              .
+            </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-4">
             {FOTOS.map((foto) => (
-              <figure key={foto.image.src} className="overflow-hidden rounded-xl shadow-sm">
+              <figure key={foto.caption} className="overflow-hidden rounded-xl shadow-sm">
                 <Image
                   src={foto.image.src}
                   alt={foto.alt}
                   width={foto.image.w}
                   height={foto.image.h}
-                  sizes="(min-width: 640px) 25vw, 50vw"
-                  className="h-48 w-full object-cover sm:h-40 lg:h-48"
+                  sizes="(min-width: 1024px) 25vw, 50vw"
+                  className="h-44 w-full object-cover lg:h-52"
                 />
                 <figcaption className="bg-card px-3 py-2 text-xs font-medium text-muted-foreground">
                   {foto.caption}
@@ -127,103 +200,24 @@ export default function RestaurantePage() {
         </div>
       </section>
 
-      <MenuSection />
-    </>
-  )
-}
-
-async function MenuSection() {
-  let itemsByCategory: { id: string; nombre: string; items: Awaited<ReturnType<typeof getMenuItems>> }[] = []
-  let platoDelDia: Awaited<ReturnType<typeof getPlatoDelDia>> = null
-
-  try {
-    const [categories, items, plato] = await Promise.all([
-      getMenuCategories(),
-      getMenuItems(),
-      getPlatoDelDia(),
-    ])
-
-    itemsByCategory = categories.map((cat) => ({
-      id: cat.id,
-      nombre: cat.nombre,
-      items: items.filter((item) => item.category_id === cat.id),
-    }))
-    platoDelDia = plato
-  } catch {
-    // Fallback si las migraciones no están aplicadas aún
-  }
-
-  if (itemsByCategory.length === 0) {
-    return (
-      <section className="pb-16">
-        <div className="container">
-          <p className="mx-auto max-w-2xl rounded-lg border border-dashed border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
-            La carta digital y el pedido directo desde la mesa llegan muy pronto.
-            Mientras tanto, consúltanos el menú del día por WhatsApp.
-          </p>
+      <section className="py-16">
+        <div className="container space-y-12">
+          <WhatsAppBooking
+            title="¿Vienes en grupo o a celebrar?"
+            steps={[
+              'Escríbenos por WhatsApp con la fecha, la hora y el número de personas.',
+              'Te confirmamos disponibilidad de mesa y los platos del día.',
+              'Llegas, te sientas y nosotros nos encargamos del resto.',
+            ]}
+            message="¡Hola! Quiero reservar en el restaurante de Finca Hotel Loma Bonita. Fecha: ___ · Personas: ___"
+            cta="Reservar por WhatsApp"
+          />
+          <div className="space-y-6">
+            <SectionHeading tag="Preguntas frecuentes" title="Sobre nuestro restaurante" />
+            <Faq items={FAQS} />
+          </div>
         </div>
       </section>
-    )
-  }
-
-  return (
-    <section className="pb-16">
-      <div className="container space-y-12">
-        {platoDelDia && (
-          <div className="mx-auto max-w-2xl rounded-lg border-2 border-primary/20 bg-primary/5 p-6 text-center">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">
-              Plato del día
-            </div>
-            <h3 className="text-2xl font-bold">{platoDelDia.nombre}</h3>
-            {platoDelDia.descripcion && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {platoDelDia.descripcion}
-              </p>
-            )}
-            <div className="mt-3 text-xl font-semibold text-primary">
-              ${platoDelDia.precio_muestra.toLocaleString('es-CO')}
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">Precio de ejemplo</p>
-          </div>
-        )}
-
-        <div className="space-y-10">
-          <SectionHeading title="Nuestra carta" />
-
-          {itemsByCategory.map((category) => (
-            category.items.length > 0 && (
-              <div key={category.id} className="space-y-4">
-                <h3 className="text-xl font-semibold">{category.nombre}</h3>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {category.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-lg border bg-card p-4 shadow-sm"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-medium">{item.nombre}</h4>
-                        <span className="shrink-0 text-sm font-semibold text-primary">
-                          ${item.precio_muestra.toLocaleString('es-CO')}
-                        </span>
-                      </div>
-                      {item.descripcion && (
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {item.descripcion}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          ))}
-        </div>
-
-        <p className="mx-auto max-w-2xl rounded-lg border border-dashed border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
-          Los precios son de ejemplo. Consulta valores actuales y disponibilidad por
-          WhatsApp. El pedido directo desde la mesa estará disponible muy pronto.
-        </p>
-      </div>
-    </section>
+    </>
   )
 }

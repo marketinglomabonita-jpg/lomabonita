@@ -42,7 +42,7 @@ export default function PoliticaPrivacidadPage() {
         <li>
           <strong>Solicitud de ticket de pasadía o experiencia</strong>: nombre, dato de contacto,
           fecha de visita, número de personas y las experiencias adicionales que elijas (karts,
-          cabalgata, balsaje).
+          cascadas, balsaje).
         </li>
         <li>
           <strong>Pedido en el restaurante</strong>: el contenido de tu pedido y el número de mesa

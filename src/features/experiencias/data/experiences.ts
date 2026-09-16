@@ -1,5 +1,8 @@
+import { PASS_PLANS } from '@/features/pasadias/data/plans'
+import { formatCop } from '@/core/lib/money'
+
 export type Experience = {
-  id: 'karts' | 'cabalgata' | 'balsaje'
+  id: 'karts' | 'cascadas' | 'balsaje'
   title: string
   tagline: string
   description: string
@@ -8,11 +11,14 @@ export type Experience = {
   featured?: boolean
 }
 
+function planPrice(id: Experience['id']): string {
+  const plan = PASS_PLANS.find((p) => p.id === id)
+  return plan ? `${plan.name}: ${formatCop(plan.price)} por persona` : ''
+}
+
 /**
- * Fichas de experiencias (Fase 1: informativas, sin motor de tickets).
- * El balsaje apoya su copy en la investigacion del brief:
- * balsa de guadua, ~3 h, ~12 km, Reserva del Ocaso, ruta tradicional
- * Quimbaya -> Piedras de Moler (donde esta la finca).
+ * Experiencias reales (se venden como planes de pasadia: Plan Basico + experiencia).
+ * Reservas por WhatsApp, sujetas a disponibilidad; el motor de tickets llega en la v3.
  */
 export const EXPERIENCES: Experience[] = [
   {
@@ -20,43 +26,42 @@ export const EXPERIENCES: Experience[] = [
     title: 'Pista de karts',
     tagline: 'Adrenalina entre las montañas',
     description:
-      'Siente la velocidad en nuestra pista de karts, un complemento perfecto para tu pasadía o tu escapada de hospedaje. Compite con tu familia o tus amigos en un ambiente campestre y seguro.',
+      'Siente la velocidad en nuestra pista de karts, el complemento perfecto para tu pasadía o tu estadía. Compite con tu familia, tus amigos o tu equipo de trabajo en un ambiente campestre.',
     details: [
-      'Ideal para niños, jóvenes y adultos',
-      'Carrera entre amigos o vueltas de práctica',
-      'Se agenda como complemento del plan pasadía',
+      'Incluye todo el Plan Básico de pasadía',
+      'Ideal para jóvenes, adultos y grupos',
+      planPrice('karts'),
     ],
-    ctaMessage: '¡Hola! Quiero información sobre la pista de karts en Loma Bonita.',
+    ctaMessage: '¡Hola! Quiero reservar el Plan Karts en Finca Hotel Loma Bonita.',
   },
   {
-    id: 'cabalgata',
-    title: 'Cabalgata',
-    tagline: 'A caballo por el campo cafetero',
+    id: 'cascadas',
+    title: 'Visita a las cascadas',
+    tagline: 'Agua, montaña y naturaleza',
     description:
-      'Recorre a caballo los caminos de la finca y sus alrededores en Piedras de Moler, acompañado por nuestro equipo. Un plan tranquilo para conectar con el paisaje del Eje Cafetero como se hacía antes: a paso de caballo.',
+      'Sal de la piscina y conoce las cascadas de la zona: un plan de naturaleza para respirar aire puro y ver de cerca el paisaje del norte del Valle y el Eje Cafetero.',
     details: [
-      'Paseo guiado por personal de la finca',
-      'Caballos mansos, aptos para principiantes',
-      'Se coordina el horario al hacer tu reserva',
+      'Incluye todo el Plan Básico de pasadía',
+      'Plan de naturaleza para familias y amigos',
+      planPrice('cascadas'),
     ],
-    ctaMessage: '¡Hola! Quiero información sobre la cabalgata en Loma Bonita.',
+    ctaMessage: '¡Hola! Quiero reservar el Plan Cascadas en Finca Hotel Loma Bonita.',
   },
   {
     id: 'balsaje',
     title: 'Balsaje por el Río La Vieja',
     tagline: 'La experiencia insignia de la región',
     description:
-      'Navega el Río La Vieja en una auténtica balsa de guadua, como marca la tradición de la región: unas 3 horas y ~12 km de recorrido con bogas experimentados que narran la historia del río y de sus familias. El trayecto pasa junto a la Reserva del Ocaso —110 hectáreas de bosque primario, hogar del mono aullador— y suele incluir un almuerzo campesino a mitad de camino. Mientras la mayoría de operadores sale de Quimbaya (Puerto Alejandría / Puerto Samaria) con traslado desde hoteles de Montenegro o Quimbaya, con nosotros la experiencia es con salida y regreso desde Loma Bonita: la finca está a solo 2 minutos del histórico puente de Piedras de Moler, el punto de desembarque tradicional del río.',
+      'La aventura más tradicional del Eje Cafetero, organizada desde la finca. Sales de Loma Bonita en jeep o Willys, pasas por Alcalá y Quimbaya hasta Puerto Alejandría y desde allí recorres el Río La Vieja en balsa, entre paisajes cafeteros y con un fiambre típico para el camino.',
     details: [
-      'Balsa de guadua tradicional con bogas guías',
-      '~3 horas · ~12 km por el Río La Vieja',
-      'Pasa junto a la Reserva del Ocaso (bosque primario, mono aullador)',
-      'Almuerzo campesino a mitad de recorrido',
-      'Mejor temporada: diciembre–marzo y julio–agosto (temporada seca)',
-      'Salida y regreso desde Loma Bonita, sin traslados a Quimbaya',
+      'Transporte en jeep o Willys desde la finca',
+      'Ruta por Alcalá y Quimbaya hasta Puerto Alejandría',
+      'Recorrido en balsa por el Río La Vieja',
+      'Fiambre típico',
+      'Incluye todo el Plan Básico de pasadía',
+      planPrice('balsaje'),
     ],
-    ctaMessage:
-      '¡Hola! Quiero información sobre el balsaje por el Río La Vieja con salida y regreso desde Loma Bonita.',
+    ctaMessage: '¡Hola! Quiero reservar el Plan Balsaje por el Río La Vieja en Finca Hotel Loma Bonita.',
     featured: true,
   },
 ]

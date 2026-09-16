@@ -94,21 +94,25 @@ const AMENITIES = [
   'Restaurante campestre',
   'Hospedaje',
   'Salón de eventos',
-  'Cancha de fútbol',
-  'Salón de juegos y billares',
-  'Zona infantil',
-  'Parqueadero gratuito',
+  'Cancha de minifútbol',
+  'Salón de billar y juegos de mesa',
+  'Zona de juegos infantiles',
+  'Gimnasio',
+  'Parqueadero',
+  'Tienda de mecatos',
 ]
 
 const KNOWS_ABOUT = [
   'Pasadía en Cartago',
   'Finca hotel en el Eje Cafetero',
   'Balsaje por el Río La Vieja',
-  'Cabalgata',
   'Pista de karts',
+  'Cascadas',
   'Salón para eventos',
   'Parque del Café',
   'PANACA',
+  'Bioparque Ukumarí',
+  'Alcalá, Valle del Cauca',
 ]
 
 export function lodgingBusinessJsonLd({
@@ -139,20 +143,41 @@ export function lodgingBusinessJsonLd({
   }
 }
 
+type PricedItem = { name: string; description: string; price: number }
+
 export function restaurantJsonLd({
   image,
   description,
+  menu = [],
 }: {
   image: ImageAsset
   description: string
+  menu?: ReadonlyArray<PricedItem>
 }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Restaurant',
     name: `Restaurante ${BUSINESS.shortName}`,
     description,
-    servesCuisine: 'Comida típica del Eje Cafetero',
+    servesCuisine: ['Comida típica colombiana', 'Comida paisa', 'Pescado'],
     url: absUrl('/restaurante'),
+    acceptsReservations: true,
+    ...(menu.length > 0 && {
+      hasMenu: {
+        '@type': 'Menu',
+        name: 'Carta del restaurante',
+        hasMenuSection: {
+          '@type': 'MenuSection',
+          name: 'Platos fuertes',
+          hasMenuItem: menu.map((item) => ({
+            '@type': 'MenuItem',
+            name: item.name,
+            description: item.description,
+            offers: { '@type': 'Offer', price: item.price, priceCurrency: 'COP' },
+          })),
+        },
+      },
+    }),
     telephone: BUSINESS.phones[0],
     image: absUrl(image.src),
     address: postalAddress(),
@@ -199,6 +224,44 @@ export function breadcrumbJsonLd(items: ReadonlyArray<{ name: string; path: stri
       position: index + 1,
       name: item.name,
       item: absUrl(item.path),
+    })),
+  }
+}
+
+export function faqJsonLd(items: ReadonlyArray<{ question: string; answer: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  }
+}
+
+/** Catalogo de ofertas con precio en COP (planes de pasadia, tarifa de hospedaje). */
+export function offerCatalogJsonLd({
+  name,
+  path,
+  offers,
+}: {
+  name: string
+  path: string
+  offers: ReadonlyArray<PricedItem>
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'OfferCatalog',
+    name,
+    url: absUrl(path),
+    itemListElement: offers.map((offer) => ({
+      '@type': 'Offer',
+      name: offer.name,
+      description: offer.description,
+      price: offer.price,
+      priceCurrency: 'COP',
+      seller: { '@type': 'LodgingBusiness', name: BUSINESS.legalName, url: CANONICAL_ORIGIN },
     })),
   }
 }

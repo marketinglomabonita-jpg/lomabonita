@@ -31,7 +31,7 @@ export default function TerminosPage() {
       <h2>2. Naturaleza de la plataforma</h2>
       <p>
         El sitio presenta los servicios de {BUSINESS.shortName} —hospedaje campestre, pasadías,
-        experiencias (pista de karts, cabalgata, balsaje por el Río La Vieja), restaurante
+        experiencias (pista de karts, cascadas, balsaje por el Río La Vieja), restaurante
         campestre y experiencias corporativas— y permite al visitante enviar{' '}
         <strong>solicitudes</strong> de reserva, ticket, pedido en mesa y cotización. El envío de
         una solicitud no constituye por sí solo una reserva confirmada: la disponibilidad, el

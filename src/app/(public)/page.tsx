@@ -55,7 +55,7 @@ const SERVICES = [
     imageAlt: 'Habitación campestre y acogedora de Loma Bonita',
     title: 'Hospedaje campestre',
     description:
-      'Habitaciones completamente equipadas y rodeadas de tranquilidad: cuatro acomodaciones para parejas, familias y grupos.',
+      '10 habitaciones para parejas, familias y grupos desde $260.000 la noche, con piscina y todas las áreas comunes incluidas.',
   },
   {
     href: '/pasadias',
@@ -64,7 +64,7 @@ const SERVICES = [
     imageAlt: 'Piscina recreativa con aguas cristalinas',
     title: 'Pasadías',
     description:
-      'Acceso completo a la piscina tropical, zonas verdes, cancha de fútbol, billares y restaurante. Ingreso desde las 9:00 a.m.',
+      'Planes desde $45.000 con piscina, almuerzo, minifútbol, billar y gimnasio. Súmale karts, cascadas o balsaje.',
   },
   {
     href: '/restaurante',
@@ -82,7 +82,7 @@ const SERVICES = [
     imageAlt: 'Visitantes disfrutando una tarde de pasadía',
     title: 'Experiencias',
     description:
-      'Pista de karts, cabalgata y balsaje por el Río La Vieja con salida y regreso desde la finca.',
+      'Pista de karts, cascadas y balsaje por el Río La Vieja con transporte desde la finca.',
   },
   {
     href: '/galeria',
@@ -153,7 +153,7 @@ const FAQS: FaqItem[] = [
   {
     question: '¿Qué incluye la pasadía en Finca Loma Bonita?',
     answer:
-      'El plan pasadía te da acceso completo a nuestras áreas comunes: piscina tropical, zonas verdes, cancha de fútbol, salón de juegos con billares y acceso a nuestro restaurante campestre. El ingreso es desde las 9:00 a.m. hasta las 5:30 p.m.',
+      'El Plan Básico ($45.000 por persona) incluye piscina, zona de restaurante, juegos infantiles, cancha de minifútbol, salón de billar y juegos de mesa, gimnasio, parqueadero, tienda de mecatos y almuerzo. También hay planes con karts, cascadas y balsaje. El ingreso es desde las 9:00 a.m.',
   },
   {
     question: '¿Cuál es la distancia a los principales parques del Eje Cafetero?',
