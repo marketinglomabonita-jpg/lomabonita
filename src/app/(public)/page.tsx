@@ -55,7 +55,7 @@ const SERVICES = [
     imageAlt: 'Habitación campestre y acogedora de Loma Bonita',
     title: 'Hospedaje campestre',
     description:
-      '10 habitaciones para parejas, familias y grupos con desayuno y cena incluidos: $250.000 por pareja la noche, con piscina y todas las áreas comunes.',
+      '10 habitaciones para parejas, familias y grupos con desayuno y cena incluidos: $125.000 por persona la noche (menores de 5 años gratis), con piscina y todas las áreas comunes.',
   },
   {
     href: '/pasadias',

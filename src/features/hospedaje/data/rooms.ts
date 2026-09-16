@@ -1,7 +1,10 @@
 import { IMAGES, type ImageAsset } from '@/core/lib/images'
 
-/** Tarifa por pareja por noche (COP), con desayuno y cena incluidos. */
-export const NIGHTLY_RATE = 250_000
+/** Tarifa por persona por noche (COP), con desayuno y cena incluidos. */
+export const PERSON_RATE = 125_000
+export const COUPLE_RATE = PERSON_RATE * 2
+/** Los niños menores de esta edad no pagan; desde esta edad pagan tarifa completa. */
+export const FREE_CHILD_AGE = 5
 
 export type BedSet = { doubles: number; singles: number; king?: boolean }
 
@@ -36,7 +39,7 @@ export function describeBeds({ doubles, singles, king }: BedSet): string[] {
 }
 
 export function roomWhatsAppMessage(room: Room): string {
-  return `¡Hola! Quiero consultar disponibilidad de la ${room.name} (Habitación ${room.number}) en Finca Hotel Loma Bonita. Fechas: ___ · Personas: ___`
+  return `¡Hola! Quiero consultar disponibilidad de la ${room.name} (Habitación ${room.number}) en Finca Hotel Loma Bonita. Fechas: ___ · Adultos: ___ · Niños (edades): ___`
 }
 
 const IMG = {

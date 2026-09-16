@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
-import { BedDouble, Clock, LogIn, MapPin, Users, UtensilsCrossed } from 'lucide-react'
+import { Baby, BedDouble, Clock, LogIn, MapPin, Users, UtensilsCrossed } from 'lucide-react'
 import { IMAGES } from '@/core/lib/images'
 import {
   breadcrumbJsonLd,
@@ -23,7 +23,9 @@ import { COMMON_AREAS } from '@/features/marketing/data/common-areas'
 import { NEARBY_PLACES } from '@/features/marketing/data/nearby'
 import {
   describeBeds,
-  NIGHTLY_RATE,
+  COUPLE_RATE,
+  FREE_CHILD_AGE,
+  PERSON_RATE,
   roomCapacity,
   ROOMS,
   roomWhatsAppMessage,
@@ -32,7 +34,7 @@ import {
 } from '@/features/hospedaje/data/rooms'
 import { PASS_PLANS } from '@/features/pasadias/data/plans'
 
-const PAGE_DESCRIPTION = `Hospedaje campestre en Cartago, vía Alcalá: ${formatCop(NIGHTLY_RATE)} por pareja la noche con desayuno y cena incluidos, más piscina, minifútbol, billar y gimnasio. 10 habitaciones para parejas, familias y grupos. Cerca del Parque del Café, PANACA y Ukumarí.`
+const PAGE_DESCRIPTION = `Hospedaje campestre en Cartago, vía Alcalá: ${formatCop(PERSON_RATE)} por persona la noche con desayuno y cena incluidos (niños menores de ${FREE_CHILD_AGE} años gratis), más piscina, minifútbol, billar y gimnasio. 10 habitaciones para parejas, familias y grupos. Cerca del Parque del Café, PANACA y Ukumarí.`
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Hospedaje campestre en Cartago — Finca hotel en el Eje Cafetero',
@@ -43,7 +45,8 @@ export const metadata: Metadata = buildPageMetadata({
 })
 
 const DATOS = [
-  { icon: BedDouble, label: 'Tarifa pareja', value: `${formatCop(NIGHTLY_RATE)} / noche` },
+  { icon: BedDouble, label: 'Tarifa por persona', value: `${formatCop(PERSON_RATE)} / noche · pareja ${formatCop(COUPLE_RATE)}` },
+  { icon: Baby, label: 'Niños', value: `Menores de ${FREE_CHILD_AGE} años no pagan` },
   { icon: UtensilsCrossed, label: 'Incluye', value: 'Desayuno y cena' },
   { icon: Users, label: 'Capacidad', value: `10 habitaciones · hasta ${TOTAL_CAPACITY} huéspedes` },
   { icon: LogIn, label: 'Check-in / out', value: '3:00 p.m. · 1:00 p.m.' },
@@ -62,7 +65,11 @@ const COMBO_PLANS = PASS_PLANS.filter((p) => p.id !== 'basico')
 const FAQS: FaqItem[] = [
   {
     question: '¿Cuánto cuesta una noche en Finca Hotel Loma Bonita?',
-    answer: `La tarifa es de ${formatCop(NIGHTLY_RATE)} por pareja por noche e incluye desayuno, cena y todas las áreas comunes. Si vienen más personas, te cotizamos el valor por WhatsApp junto con la disponibilidad.`,
+    answer: `La tarifa es de ${formatCop(PERSON_RATE)} por persona por noche (${formatCop(COUPLE_RATE)} una pareja) e incluye desayuno, cena y todas las áreas comunes.`,
+  },
+  {
+    question: '¿Los niños pagan hospedaje?',
+    answer: `Los niños menores de ${FREE_CHILD_AGE} años no pagan. Desde los ${FREE_CHILD_AGE} años pagan la tarifa normal de ${formatCop(PERSON_RATE)} por noche, con desayuno y cena incluidos.`,
   },
   {
     question: '¿Qué incluye el hospedaje?',
@@ -106,8 +113,8 @@ export default function HospedajePage() {
           path: '/hospedaje',
           offers: ROOMS.map((room) => ({
             name: `${room.name} (Habitación ${room.number})`,
-            description: `${describeBeds(room.beds).join(', ')}. Hasta ${roomCapacity(room.beds)} personas. Tarifa por pareja con desayuno, cena y áreas comunes incluidos.`,
-            price: NIGHTLY_RATE,
+            description: `${describeBeds(room.beds).join(', ')}. Hasta ${roomCapacity(room.beds)} personas. Tarifa por persona con desayuno, cena y áreas comunes incluidos; menores de ${FREE_CHILD_AGE} años gratis.`,
+            price: PERSON_RATE,
           })),
         })}
       />
@@ -116,13 +123,13 @@ export default function HospedajePage() {
       <PageHero
         tag="Hospedaje campestre en Cartago"
         title="Duerme en el campo, despierta en el Eje Cafetero"
-        description={`${formatCop(NIGHTLY_RATE)} por pareja la noche, con desayuno y cena incluidos. 10 habitaciones en Piedras de Moler, vía Alcalá, con piscina, zonas de juego, gimnasio y todo lo que hace de Loma Bonita un plan completo.`}
+        description={`${formatCop(PERSON_RATE)} por persona la noche, con desayuno y cena incluidos. Niños menores de ${FREE_CHILD_AGE} años gratis. 10 habitaciones en Piedras de Moler, vía Alcalá, con piscina, zonas de juego, gimnasio y todo lo que hace de Loma Bonita un plan completo.`}
         image={IMAGES['habitaciones-2-vertical']}
         imageAlt="Habitación familiar de la Finca Hotel Loma Bonita"
       />
 
       <section className="border-b border-border bg-muted/40">
-        <div className="container grid gap-3 py-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="container grid gap-3 py-8 sm:grid-cols-2 lg:grid-cols-5">
           {DATOS.map((d) => (
             <div
               key={d.label}
@@ -166,8 +173,8 @@ export default function HospedajePage() {
               <p className="text-sm">
                 <span className="font-semibold text-cafe">Todo esto incluido</span> en cada
                 habitación, por{' '}
-                <span className="font-semibold text-cafe">{formatCop(NIGHTLY_RATE)}</span> la noche
-                por pareja.
+                <span className="font-semibold text-cafe">{formatCop(PERSON_RATE)}</span> por persona
+                la noche. Niños menores de {FREE_CHILD_AGE} años gratis.
               </p>
             }
           />
@@ -225,7 +232,7 @@ export default function HospedajePage() {
                   </ul>
                   <a
                     href={waLink(
-                      `¡Hola! Quiero cotizar el combo Hospedaje + ${plan.name} en Finca Hotel Loma Bonita. Fechas: ___ · Personas: ___`,
+                      `¡Hola! Quiero cotizar el combo Hospedaje + ${plan.name} en Finca Hotel Loma Bonita. Fechas: ___ · Adultos: ___ · Niños (edades): ___`,
                     )}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -278,11 +285,11 @@ export default function HospedajePage() {
           <WhatsAppBooking
             title="¿Cómo reservar tu habitación?"
             steps={[
-              'Escríbenos por WhatsApp con tus fechas, el número de personas y la habitación que te gustó.',
+              'Escríbenos por WhatsApp con tus fechas, cuántos adultos y niños vienen (con sus edades) y la habitación que te gustó.',
               'Te confirmamos disponibilidad y el valor final de tu estadía.',
               `Separas tu reserva y llegas desde las 3:00 p.m. El check-out es a la 1:00 p.m.`,
             ]}
-            message="¡Hola! Quiero reservar hospedaje en Finca Hotel Loma Bonita. Fechas: ___ · Personas: ___"
+            message="¡Hola! Quiero reservar hospedaje en Finca Hotel Loma Bonita. Fechas: ___ · Adultos: ___ · Niños (edades): ___"
             cta="Consultar disponibilidad"
           />
           <div className="space-y-6">
@@ -348,9 +355,8 @@ function RoomCard({ room }: { room: Room }) {
         </p>
         <div className="mt-auto flex items-end justify-between gap-3 border-t border-border pt-4">
           <p className="text-sm">
-            <span className="block text-xs text-muted-foreground">Pareja</span>
-            <span className="text-lg font-semibold text-cafe">{formatCop(NIGHTLY_RATE)}</span>
-            <span className="text-xs text-muted-foreground"> / noche</span>
+            <span className="block text-xs text-muted-foreground">Por persona / noche</span>
+            <span className="text-lg font-semibold text-cafe">{formatCop(PERSON_RATE)}</span>
           </p>
           <a
             href={waLink(roomWhatsAppMessage(room))}
