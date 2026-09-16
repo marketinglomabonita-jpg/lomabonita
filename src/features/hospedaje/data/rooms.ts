@@ -1,7 +1,7 @@
 import { IMAGES, type ImageAsset } from '@/core/lib/images'
 
-/** Tarifa base por noche (COP). Pendiente de validacion final del propietario. */
-export const NIGHTLY_RATE = 260_000
+/** Tarifa por pareja por noche (COP), con desayuno y cena incluidos. */
+export const NIGHTLY_RATE = 250_000
 
 export type BedSet = { doubles: number; singles: number; king?: boolean }
 
@@ -79,7 +79,7 @@ export const ROOMS: Room[] = [
     badge: 'Hasta 3 personas',
     idealFor: 'Papá, mamá y un hijo · o tres amigos',
     description:
-      'Una cama doble y una sencilla para la familia pequeña que quiere un fin de semana en el campo: piscina en la mañana, almuerzo típico al mediodía y noches tranquilas en la vía a Alcalá.',
+      'Una cama doble y una sencilla para la familia pequeña que quiere un fin de semana en el campo: desayuno y cena incluidos, piscina todo el día y noches tranquilas en la vía a Alcalá.',
     beds: { doubles: 1, singles: 1 },
     image: IMG.familiar,
     imageAlt: 'Habitación familiar con cama doble y cama sencilla',

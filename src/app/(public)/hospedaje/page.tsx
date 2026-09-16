@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
-import { BedDouble, Clock, LogIn, LogOut, MapPin, Users } from 'lucide-react'
+import { BedDouble, Clock, LogIn, MapPin, Users, UtensilsCrossed } from 'lucide-react'
 import { IMAGES } from '@/core/lib/images'
 import {
   breadcrumbJsonLd,
@@ -32,7 +32,7 @@ import {
 } from '@/features/hospedaje/data/rooms'
 import { PASS_PLANS } from '@/features/pasadias/data/plans'
 
-const PAGE_DESCRIPTION = `Hospedaje campestre en Cartago, vía Alcalá: 10 habitaciones para parejas, familias y grupos desde ${formatCop(NIGHTLY_RATE)} la noche, con piscina, restaurante, minifútbol, billar y gimnasio incluidos. Cerca del Parque del Café, PANACA y Ukumarí.`
+const PAGE_DESCRIPTION = `Hospedaje campestre en Cartago, vía Alcalá: ${formatCop(NIGHTLY_RATE)} por pareja la noche con desayuno y cena incluidos, más piscina, minifútbol, billar y gimnasio. 10 habitaciones para parejas, familias y grupos. Cerca del Parque del Café, PANACA y Ukumarí.`
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Hospedaje campestre en Cartago — Finca hotel en el Eje Cafetero',
@@ -43,13 +43,15 @@ export const metadata: Metadata = buildPageMetadata({
 })
 
 const DATOS = [
-  { icon: BedDouble, label: 'Tarifa', value: `Desde ${formatCop(NIGHTLY_RATE)} / noche` },
+  { icon: BedDouble, label: 'Tarifa pareja', value: `${formatCop(NIGHTLY_RATE)} / noche` },
+  { icon: UtensilsCrossed, label: 'Incluye', value: 'Desayuno y cena' },
   { icon: Users, label: 'Capacidad', value: `10 habitaciones · hasta ${TOTAL_CAPACITY} huéspedes` },
-  { icon: LogIn, label: 'Check-in', value: '3:00 p.m.' },
-  { icon: LogOut, label: 'Check-out', value: '1:00 p.m.' },
+  { icon: LogIn, label: 'Check-in / out', value: '3:00 p.m. · 1:00 p.m.' },
 ]
 
 const STAY_STACK = [
+  { title: 'Desayuno incluido', detail: 'Empieza el día con un desayuno campestre en la finca.' },
+  { title: 'Cena incluida', detail: 'Cierra la jornada con la cena servida en nuestro restaurante.' },
   ...COMMON_AREAS.map((a) => ({ title: a.title, detail: a.description })),
   { title: 'Ambiente campestre y familiar', detail: 'Aire puro, zonas verdes y descanso lejos del ruido.' },
   { title: 'Ubicación estratégica', detail: 'Entre Cartago y Alcalá, con los parques del Eje Cafetero a la mano.' },
@@ -60,12 +62,12 @@ const COMBO_PLANS = PASS_PLANS.filter((p) => p.id !== 'basico')
 const FAQS: FaqItem[] = [
   {
     question: '¿Cuánto cuesta una noche en Finca Hotel Loma Bonita?',
-    answer: `La tarifa de hospedaje es desde ${formatCop(NIGHTLY_RATE)} por noche. El valor final depende de la habitación, la fecha y el número de huéspedes; te lo confirmamos por WhatsApp junto con la disponibilidad.`,
+    answer: `La tarifa es de ${formatCop(NIGHTLY_RATE)} por pareja por noche e incluye desayuno, cena y todas las áreas comunes. Si vienen más personas, te cotizamos el valor por WhatsApp junto con la disponibilidad.`,
   },
   {
     question: '¿Qué incluye el hospedaje?',
     answer:
-      'Todas las habitaciones incluyen el uso de las áreas comunes: piscina, zona de restaurante, juegos infantiles, cancha de minifútbol, salón de billar y juegos de mesa, gimnasio, parqueadero y tienda de mecatos.',
+      'Todas las habitaciones incluyen desayuno, cena y el uso de las áreas comunes: piscina, zona de restaurante, juegos infantiles, cancha de minifútbol, salón de billar y juegos de mesa, gimnasio, parqueadero y tienda de mecatos.',
   },
   {
     question: '¿Cómo reservo una habitación?',
@@ -104,7 +106,7 @@ export default function HospedajePage() {
           path: '/hospedaje',
           offers: ROOMS.map((room) => ({
             name: `${room.name} (Habitación ${room.number})`,
-            description: `${describeBeds(room.beds).join(', ')}. Hasta ${roomCapacity(room.beds)} personas. Incluye áreas comunes.`,
+            description: `${describeBeds(room.beds).join(', ')}. Hasta ${roomCapacity(room.beds)} personas. Tarifa por pareja con desayuno, cena y áreas comunes incluidos.`,
             price: NIGHTLY_RATE,
           })),
         })}
@@ -114,7 +116,7 @@ export default function HospedajePage() {
       <PageHero
         tag="Hospedaje campestre en Cartago"
         title="Duerme en el campo, despierta en el Eje Cafetero"
-        description="10 habitaciones para parejas, familias y grupos en Piedras de Moler, vía Alcalá. Cada estadía incluye piscina, restaurante, zonas de juego, gimnasio y todo lo que hace de Loma Bonita un plan completo."
+        description={`${formatCop(NIGHTLY_RATE)} por pareja la noche, con desayuno y cena incluidos. 10 habitaciones en Piedras de Moler, vía Alcalá, con piscina, zonas de juego, gimnasio y todo lo que hace de Loma Bonita un plan completo.`}
         image={IMAGES['habitaciones-2-vertical']}
         imageAlt="Habitación familiar de la Finca Hotel Loma Bonita"
       />
@@ -150,7 +152,7 @@ export default function HospedajePage() {
               En Loma Bonita tu habitación incluye todas las áreas comunes que disfrutan nuestros visitantes
               de pasadía, sin pagar entrada aparte. Te despiertas y la piscina está ahí; los niños
               tienen su zona de juegos, los grandes su partido de minifútbol y su mesa de billar,
-              y el restaurante queda a unos pasos para el almuerzo típico.
+              y en el restaurante te esperan el desayuno y la cena, ya incluidos en tu tarifa.
             </p>
             <p className="text-muted-foreground">
               Es el hospedaje campestre ideal si vives en Cartago y quieres desconectarte sin
@@ -163,8 +165,9 @@ export default function HospedajePage() {
             footer={
               <p className="text-sm">
                 <span className="font-semibold text-cafe">Todo esto incluido</span> en cada
-                habitación, desde{' '}
-                <span className="font-semibold text-cafe">{formatCop(NIGHTLY_RATE)}</span> la noche.
+                habitación, por{' '}
+                <span className="font-semibold text-cafe">{formatCop(NIGHTLY_RATE)}</span> la noche
+                por pareja.
               </p>
             }
           />
@@ -214,6 +217,7 @@ export default function HospedajePage() {
                   <h3 className="font-display text-xl font-semibold text-cafe">{plan.tagline}</h3>
                   <ul className="space-y-1 text-sm text-muted-foreground">
                     <li>• Noche en la habitación que elijas</li>
+                    <li>• Desayuno y cena</li>
                     <li>• Todas las áreas comunes de la finca</li>
                     {plan.extras.map((extra) => (
                       <li key={extra.title}>• {extra.title}</li>
@@ -340,11 +344,11 @@ function RoomCard({ room }: { room: Room }) {
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Incluye piscina, restaurante, juegos, minifútbol, billar, gimnasio y parqueadero.
+          Incluye desayuno, cena, piscina, juegos, minifútbol, billar, gimnasio y parqueadero.
         </p>
         <div className="mt-auto flex items-end justify-between gap-3 border-t border-border pt-4">
           <p className="text-sm">
-            <span className="block text-xs text-muted-foreground">Desde</span>
+            <span className="block text-xs text-muted-foreground">Pareja</span>
             <span className="text-lg font-semibold text-cafe">{formatCop(NIGHTLY_RATE)}</span>
             <span className="text-xs text-muted-foreground"> / noche</span>
           </p>
