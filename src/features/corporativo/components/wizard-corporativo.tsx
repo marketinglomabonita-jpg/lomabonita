@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Loader2, Check, ChevronRight, ChevronLeft, Calendar, Users, Mail, Phone, Building2, User } from 'lucide-react'
 import { Button } from '@/core/ui/button'
 import { Input } from '@/core/ui/input'
@@ -39,15 +39,21 @@ type WizardState = {
   whatsapp: string
 }
 
-export function WizardCorporativo() {
+type WizardCorporativoProps = {
+  /** Tipo preseleccionado (slug) cuando se abre desde "Cotizar" de un paquete. */
+  initialTipo?: string
+  /** Paso inicial: "Cotizar" entra directo al 02; "ARMA TU EXPERIENCIA" al 01. */
+  initialPaso?: number
+  /** Cierra la ventana emergente que contiene el wizard, si la hay. */
+  onClose?: () => void
+}
+
+export function WizardCorporativo({ initialTipo = '', initialPaso = 1, onClose }: WizardCorporativoProps = {}) {
   const router = useRouter()
-  // Preselección desde los botones "Cotizar" de la página (?tipo=<slug>#wizard).
-  // useSearchParams es determinista en cliente y SSR (bajo Suspense), a diferencia de
-  // leer window.location en el inicializador, que dependía del timing de hidratación.
-  const tipoInicial = useSearchParams().get('tipo') ?? ''
+  const rootRef = useRef<HTMLDivElement>(null)
   const [state, setState] = useState<WizardState>(() => ({
-    paso: 1,
-    tipoExperiencia: tipoInicial,
+    paso: initialPaso,
+    tipoExperiencia: initialTipo,
     incluir: [],
     experiencias: [],
     destinos: [],
@@ -118,16 +124,22 @@ export function WizardCorporativo() {
   const avanzar = () => {
     if (puedeAvanzar() && state.paso < 5) {
       setState((prev) => ({ ...prev, paso: prev.paso + 1 }))
-      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   const retroceder = () => {
     if (state.paso > 1) {
       setState((prev) => ({ ...prev, paso: prev.paso - 1 }))
-      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
+
+  // Al cambiar de paso reiniciamos el scroll del contenedor del modal (no el de la
+  // página): así el contenido de cada paso aparece arriba sin mover el fondo. Si el
+  // wizard no vive dentro de un contenedor con scroll (sin modal), no toca nada.
+  useEffect(() => {
+    const scroller = rootRef.current?.closest('[data-modal-scroll]')
+    if (scroller) scroller.scrollTop = 0
+  }, [state.paso])
 
   const toggleAddon = (categoria: 'incluir' | 'experiencias' | 'destinos', slug: string) => {
     setState((prev) => {
@@ -170,7 +182,10 @@ export function WizardCorporativo() {
     }
 
     setSuccess(true)
-    setTimeout(() => router.push('/'), 3000)
+    setTimeout(() => {
+      onClose?.()
+      router.push('/')
+    }, 3000)
   }
 
   if (success) {
@@ -191,9 +206,9 @@ export function WizardCorporativo() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div ref={rootRef} className="mx-auto max-w-4xl">
       {/* Indicador de pasos */}
-      <div className="mb-8 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         {PASOS.map((nombre, i) => {
           const idx = i + 1
           const activo = state.paso === idx
@@ -213,6 +228,17 @@ export function WizardCorporativo() {
           )
         })}
       </div>
+
+      {/* Tipo elegido (visible en pasos 2+ para que quede claro qué se está cotizando) */}
+      {state.paso >= 2 && state.tipoExperiencia && (
+        <div className="mb-8 flex flex-wrap items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+          <Check className="h-4 w-4 shrink-0" />
+          <span>Experiencia elegida:</span>
+          <span className="font-semibold uppercase tracking-wide">
+            {tipoSeleccionado?.nombre ?? state.tipoExperiencia}
+          </span>
+        </div>
+      )}
 
       {/* Paso 1: Elige tipo */}
       {state.paso === 1 && (

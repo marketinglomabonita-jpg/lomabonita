@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Check } from 'lucide-react'
@@ -6,7 +5,10 @@ import { IMAGES } from '@/core/lib/images'
 import { breadcrumbJsonLd, buildPageMetadata, JsonLd } from '@/core/lib/seo'
 import { PageHero } from '@/features/marketing/components/page-hero'
 import { SectionHeading } from '@/features/marketing/components/section-heading'
-import { WizardCorporativo } from '@/features/corporativo/components/wizard-corporativo'
+import {
+  CotizadorProvider,
+  AbrirCotizadorButton,
+} from '@/features/corporativo/components/cotizador-modal'
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Experiencias Corporativas — Team building, eventos y pasadías empresariales en el Eje Cafetero',
@@ -138,7 +140,7 @@ const COMO_FUNCIONA = [
 
 export default function ExperienciasCorporativasPage() {
   return (
-    <>
+    <CotizadorProvider>
       <JsonLd
         data={breadcrumbJsonLd([
           { name: 'Inicio', path: '/' },
@@ -161,12 +163,11 @@ export default function ExperienciasCorporativasPage() {
           <p className="mb-6 text-lg font-semibold uppercase tracking-wide text-amber-900">
             Tú eliges el objetivo. Nosotros te ayudamos a construir la experiencia.
           </p>
-          <Link
-            href="#wizard"
+          <AbrirCotizadorButton
             className="inline-flex h-11 items-center justify-center rounded-md bg-amber-900 px-8 text-sm font-semibold text-white hover:bg-amber-800"
           >
             ARMA TU EXPERIENCIA
-          </Link>
+          </AbrirCotizadorButton>
         </div>
       </section>
 
@@ -194,12 +195,13 @@ export default function ExperienciasCorporativasPage() {
                   </ul>
                 )}
                 {tipo.ideal && <p className="text-sm font-medium text-amber-800">{tipo.ideal}</p>}
-                <Link
-                  href={`/experiencias-corporativas?tipo=${tipo.slug}#wizard`}
+                <AbrirCotizadorButton
+                  tipo={tipo.slug}
+                  paso={2}
                   className="mt-6 inline-flex h-11 items-center justify-center self-start rounded-md bg-amber-900 px-8 text-sm font-semibold text-white transition-colors hover:bg-amber-800"
                 >
                   Cotizar
-                </Link>
+                </AbrirCotizadorButton>
               </div>
             ))}
           </div>
@@ -294,23 +296,23 @@ export default function ExperienciasCorporativasPage() {
         </div>
       </section>
 
-      {/* Wizard */}
-      <section id="wizard" className="scroll-mt-24 py-16 md:py-24">
+      {/* Wizard (se abre en ventana emergente) */}
+      <section className="py-16 md:py-24">
         <div className="container">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
+          <div className="mx-auto max-w-2xl text-center">
             <h2 className="mb-4 text-3xl font-bold tracking-tight text-neutral-900 md:text-4xl">
               ARMA TU EXPERIENCIA
             </h2>
-            <p className="text-lg text-neutral-700">
+            <p className="mb-8 text-lg text-neutral-700">
               ¿Listo para construir el plan de tu equipo? Selecciona lo que necesitas y nosotros calculamos un valor
               estimado para tu grupo.
             </p>
+            <AbrirCotizadorButton
+              className="inline-flex h-11 items-center justify-center rounded-md bg-amber-900 px-8 text-sm font-semibold text-white hover:bg-amber-800"
+            >
+              ARMA TU EXPERIENCIA
+            </AbrirCotizadorButton>
           </div>
-          <Suspense
-            fallback={<div className="mx-auto max-w-4xl p-10 text-center text-neutral-500">Cargando…</div>}
-          >
-            <WizardCorporativo />
-          </Suspense>
         </div>
       </section>
 
@@ -323,6 +325,6 @@ export default function ExperienciasCorporativasPage() {
           </p>
         </div>
       </section>
-    </>
+    </CotizadorProvider>
   )
 }
