@@ -143,13 +143,15 @@ export default function ExperienciasCorporativasPage() {
       <PageHero
         tag="Experiencias corporativas"
         title="Tu equipo merece algo más que una reunión"
-        description="Convierte una jornada de trabajo, integración o celebración en una experiencia que tu equipo realmente recuerde. En Loma Bonita puedes organizar desde un pasadía corporativo hasta experiencias de integración, actividades de team building, eventos empresariales, hospedaje y recorridos por algunos de los principales atractivos del Eje Cafetero."
         image={IMAGES['piscina-recreativa']}
         imageAlt="Finca Loma Bonita — experiencias corporativas"
       />
 
       <section className="container py-16 md:py-24">
         <div className="mx-auto max-w-4xl text-center">
+          <p className="mb-8 text-lg leading-relaxed text-neutral-700">
+            Convierte una jornada de trabajo, integración o celebración en una experiencia que tu equipo realmente recuerde. En Loma Bonita puedes organizar desde un pasadía corporativo hasta experiencias de integración, actividades de team building, eventos empresariales, hospedaje y recorridos por algunos de los principales atractivos del Eje Cafetero.
+          </p>
           <p className="mb-6 text-lg font-semibold uppercase tracking-wide text-amber-900">
             Tú eliges el objetivo. Nosotros te ayudamos a construir la experiencia.
           </p>
