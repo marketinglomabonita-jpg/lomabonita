@@ -307,7 +307,7 @@ function PlanCard({ plan }: { plan: PassPlan }) {
           width={plan.image.w}
           height={plan.image.h}
           sizes="(min-width: 1024px) 50vw, 100vw"
-          className="h-48 w-full object-cover"
+          className="aspect-[4/3] w-full object-cover"
         />
         {plan.featured && (
           <span className="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-white">

@@ -215,7 +215,7 @@ export default function HospedajePage() {
                   width={plan.image.w}
                   height={plan.image.h}
                   sizes="(min-width: 768px) 33vw, 100vw"
-                  className="h-44 w-full object-cover"
+                  className="aspect-[4/3] w-full object-cover"
                 />
                 <div className="flex flex-1 flex-col gap-3 p-5">
                   <p className="text-xs font-semibold uppercase tracking-wide text-accent">

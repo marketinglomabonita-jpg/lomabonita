@@ -512,9 +512,9 @@
   },
   "pasadia-cascadas": {
     "src": "/img/pasadia-cascadas.webp",
-    "w": 1500,
-    "h": 1000,
-    "bytes": 275352,
+    "w": 1448,
+    "h": 1086,
+    "bytes": 256062,
     "original": "pasadia cascadas loma bonita.png"
   },
   "pasadia-karts": {
@@ -523,5 +523,12 @@
     "h": 1086,
     "bytes": 244976,
     "original": "pasadia cars loma bonita.png"
+  },
+  "pasadia-relax": {
+    "src": "/img/pasadia-relax.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 143978,
+    "original": "visitantes-pasadia.webp (recorte 4:3)"
   }
 }

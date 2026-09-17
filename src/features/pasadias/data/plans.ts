@@ -39,7 +39,7 @@ export const PASS_PLANS: PassPlan[] = [
     description:
       'Piscina, deporte, juegos y almuerzo típico en un solo plan. La forma más fácil de salir de Cartago y pasar un día entero en el campo sin preocuparte por nada.',
     extras: [],
-    image: IMAGES['visitantes-pasadia'],
+    image: IMAGES['pasadia-relax'],
     imageAlt: 'Visitantes disfrutando su pasadía con almuerzo típico en Finca Hotel Loma Bonita',
   },
   {
