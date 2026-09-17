@@ -10,6 +10,7 @@ import {
   faqJsonLd,
   JsonLd,
   offerCatalogJsonLd,
+  touristAttractionJsonLd,
 } from '@/core/lib/seo'
 import { cn } from '@/core/lib/utils'
 import { buttonVariants } from '@/core/ui/button'
@@ -30,6 +31,7 @@ import {
 
 const priceOf = (id: PassPlan['id']) => formatCop(PASS_PLANS.find((p) => p.id === id)?.price ?? 0)
 const BASIC_PRICE = priceOf('basico')
+const BALSAJE = PASS_PLANS.find((p) => p.id === 'balsaje') ?? PASS_PLANS[0]
 
 export const metadata: Metadata = buildPageMetadata({
   title: `Pasadía en Cartago con piscina y almuerzo desde ${BASIC_PRICE}`,
@@ -104,6 +106,15 @@ export default function PasadiasPage() {
         })}
       />
       <JsonLd data={faqJsonLd(FAQS)} />
+      <JsonLd
+        data={touristAttractionJsonLd({
+          name: 'Balsaje por el Río La Vieja — Loma Aventura de Río',
+          description: BALSAJE.description,
+          image: BALSAJE.image,
+          touristType: ['Familias', 'Grupos de amigos', 'Turismo de aventura'],
+          path: '/pasadias#plan-balsaje',
+        })}
+      />
 
       <PageHero
         tag="Pasadía en Cartago"
@@ -221,7 +232,7 @@ export default function PasadiasPage() {
           </div>
           <div className="text-center">
             <a
-              href={waLink(planWhatsAppMessage(PASS_PLANS.find((p) => p.id === 'balsaje') ?? PASS_PLANS[0]))}
+              href={waLink(planWhatsAppMessage(BALSAJE))}
               target="_blank"
               rel="noopener noreferrer"
               className={buttonVariants({ variant: 'accent' })}

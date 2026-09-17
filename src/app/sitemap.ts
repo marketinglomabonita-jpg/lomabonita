@@ -7,7 +7,6 @@ const PUBLIC_ROUTES = [
   '/hospedaje',
   '/restaurante',
   '/pasadias',
-  '/experiencias',
   '/experiencias-corporativas',
   '/galeria',
   '/contacto',

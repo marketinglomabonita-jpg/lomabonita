@@ -192,18 +192,20 @@ export function touristAttractionJsonLd({
   description,
   image,
   touristType,
+  path,
 }: {
   name: string
   description: string
   image: ImageAsset
   touristType: string[]
+  path: string
 }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'TouristAttraction',
     name,
     description,
-    url: absUrl('/experiencias'),
+    url: absUrl(path),
     image: absUrl(image.src),
     touristType,
     location: {

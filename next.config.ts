@@ -54,6 +54,10 @@ const nextConfig: NextConfig = {
       ? [{ protocol: 'https', hostname: supabaseHost, pathname: '/storage/v1/object/public/**' }]
       : [],
   },
+  // /experiencias se unifico en /pasadias (mismo contenido): 308 para no duplicar ni canibalizar.
+  async redirects() {
+    return [{ source: '/experiencias', destination: '/pasadias', permanent: true }]
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
   },

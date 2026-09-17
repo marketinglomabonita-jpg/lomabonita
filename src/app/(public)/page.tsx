@@ -76,13 +76,13 @@ const SERVICES = [
       'La mejor sazón típica de la región: platos tradicionales con ingredientes frescos de la zona, al aire libre.',
   },
   {
-    href: '/experiencias',
+    href: '/pasadias#plan-balsaje',
     icon: Route,
     image: IMAGES['visitantes-pasadia'],
     imageAlt: 'Visitantes disfrutando una tarde de pasadía',
-    title: 'Experiencias',
+    title: 'Aventuras Loma',
     description:
-      'Pista de karts, cascadas y balsaje por el Río La Vieja con transporte desde la finca.',
+      '🏎️ Loma Racing, 💦 Loma Cascadas y 🛶 Loma Aventura de Río: karts, cascadas y balsaje por el Río La Vieja.',
   },
   {
     href: '/galeria',
