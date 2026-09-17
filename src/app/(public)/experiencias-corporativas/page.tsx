@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Check } from 'lucide-react'
@@ -18,6 +19,7 @@ export const metadata: Metadata = buildPageMetadata({
 
 const TIPOS_EXPERIENCIA = [
   {
+    slug: 'pasadia-corporativo',
     titulo: 'PASADÍA CORPORATIVO',
     descripcion: 'Un día para desconectarse de la rutina y compartir.',
     contenido:
@@ -33,6 +35,7 @@ const TIPOS_EXPERIENCIA = [
     ideal: 'Ideal para: celebraciones, jornadas de bienestar, encuentros de equipo y días de integración.',
   },
   {
+    slug: 'integracion-team-building',
     titulo: 'INTEGRACIÓN & TEAM BUILDING',
     descripcion: 'No se trata solamente de pasarla bien. Se trata de conectar al equipo.',
     contenido:
@@ -45,6 +48,7 @@ const TIPOS_EXPERIENCIA = [
       'Puedes agregar: cabalgata, actividades de aventura, bienestar, masajes y otras experiencias disponibles.',
   },
   {
+    slug: 'eventos-corporativos',
     titulo: 'EVENTOS CORPORATIVOS',
     descripcion: 'El espacio que necesitas para hacer realidad tu propio evento.',
     contenido:
@@ -56,6 +60,7 @@ const TIPOS_EXPERIENCIA = [
     ideal: '',
   },
   {
+    slug: 'experiencia-corporativa',
     titulo: 'EXPERIENCIA CORPORATIVA',
     descripcion: 'Cuando quieres mucho más que un día.',
     contenido:
@@ -141,8 +146,9 @@ export default function ExperienciasCorporativasPage() {
         ])}
       />
       <PageHero
-        tag="Experiencias corporativas"
-        title="Tu equipo merece algo más que una reunión"
+        tag="Para tu empresa"
+        title="Experiencias Corporativas Loma Bonita"
+        description="Tu equipo merece algo más que una reunión"
         image={IMAGES['piscina-recreativa']}
         imageAlt="Finca Loma Bonita — experiencias corporativas"
       />
@@ -173,7 +179,7 @@ export default function ExperienciasCorporativasPage() {
           />
           <div className="mt-12 grid gap-8 md:grid-cols-2">
             {TIPOS_EXPERIENCIA.map((tipo, i) => (
-              <div key={i} className="rounded-lg border border-neutral-200 bg-white p-6 md:p-8">
+              <div key={i} className="flex flex-col rounded-lg border border-neutral-200 bg-white p-6 md:p-8">
                 <h3 className="mb-2 text-xl font-bold uppercase tracking-wide text-amber-900">{tipo.titulo}</h3>
                 <p className="mb-4 text-lg font-medium text-neutral-900">{tipo.descripcion}</p>
                 <p className="mb-4 text-neutral-700">{tipo.contenido}</p>
@@ -188,6 +194,12 @@ export default function ExperienciasCorporativasPage() {
                   </ul>
                 )}
                 {tipo.ideal && <p className="text-sm font-medium text-amber-800">{tipo.ideal}</p>}
+                <Link
+                  href={`/experiencias-corporativas?tipo=${tipo.slug}#wizard`}
+                  className="mt-6 inline-flex h-11 items-center justify-center self-start rounded-md bg-amber-900 px-8 text-sm font-semibold text-white transition-colors hover:bg-amber-800"
+                >
+                  Cotizar
+                </Link>
               </div>
             ))}
           </div>
@@ -294,7 +306,11 @@ export default function ExperienciasCorporativasPage() {
               estimado para tu grupo.
             </p>
           </div>
-          <WizardCorporativo />
+          <Suspense
+            fallback={<div className="mx-auto max-w-4xl p-10 text-center text-neutral-500">Cargando…</div>}
+          >
+            <WizardCorporativo />
+          </Suspense>
         </div>
       </section>
 

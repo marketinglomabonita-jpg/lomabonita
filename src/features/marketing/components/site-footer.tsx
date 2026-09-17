@@ -133,6 +133,15 @@ export function SiteFooter() {
               </span>
             </p>
           </address>
+          <a
+            href={BUSINESS.links.googleMaps}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm text-primary-foreground/80 transition-colors hover:text-white hover:underline"
+          >
+            <MapPin className="size-4 shrink-0 text-arcilla" aria-hidden="true" />
+            Ver ubicación en Google Maps
+          </a>
           <div className="mt-5 flex flex-wrap gap-2">
             {ZONA_CHIPS.map((chip) => (
               <span

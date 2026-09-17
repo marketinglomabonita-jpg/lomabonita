@@ -56,7 +56,7 @@ export const PASS_PLANS: PassPlan[] = [
   },
   {
     id: 'balsaje',
-    name: 'Loma Aventura de Río',
+    name: 'Loma Aventura Balsaje',
     emoji: '🛶',
     price: 110_000,
     tagline: 'La aventura insignia del Río La Vieja',
@@ -79,13 +79,30 @@ export const PASS_PLANS: PassPlan[] = [
   },
   {
     id: 'cascadas',
-    name: 'Loma Cascadas',
+    name: 'Loma Aventura Cascadas',
     emoji: '💦',
     price: 100_000,
-    tagline: 'Relax + naturaleza viva',
+    tagline: 'Río, selva y la Cascada Los Micos',
     description:
-      'Todo lo de Loma Relax más una visita a las cascadas de la zona: agua, montaña y verde por todas partes antes de volver a la piscina.',
-    extras: [{ title: 'Visita a las cascadas', detail: 'Naturaleza y aire puro en los alrededores.' }],
+      'Todo lo de Loma Relax más la aventura completa a la Cascada Los Micos: navegas el Río La Vieja en bote desde la finca, caminas unos 20 minutos entre naturaleza y llegas a una cascada donde puedes bañarte. Después, regreso en bote hasta Loma Bonita y de vuelta a la piscina.',
+    extras: [
+      {
+        title: 'Paseo en bote por el Río La Vieja',
+        detail: 'Sales navegando desde Finca Hotel Loma Bonita, entre paisajes del Eje Cafetero.',
+      },
+      {
+        title: 'Caminata guiada de unos 20 minutos',
+        detail: 'Un recorrido entre naturaleza viva, sombra y sonido de agua hasta la cascada.',
+      },
+      {
+        title: 'Baño en la Cascada Los Micos',
+        detail: 'Agua fresca de montaña para nadar y refrescarse en plena selva.',
+      },
+      {
+        title: 'Regreso en bote hasta la finca',
+        detail: 'El río otra vez, de vuelta a la piscina y a las zonas de descanso.',
+      },
+    ],
     image: IMAGES['zonas-de-descanso-vista-a-la-piscina-y-la-montana'],
     imageAlt: 'Vista a la montaña desde la Finca Hotel Loma Bonita',
   },

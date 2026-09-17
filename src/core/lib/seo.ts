@@ -132,6 +132,7 @@ export function lodgingBusinessJsonLd({
     image: absUrl(image.src),
     address: postalAddress(),
     geo: geoCoordinates(),
+    hasMap: BUSINESS.links.googleMaps,
     priceRange: '$$',
     sameAs: Object.values(BUSINESS.social),
     amenityFeature: AMENITIES.map((name) => ({
@@ -182,6 +183,7 @@ export function restaurantJsonLd({
     image: absUrl(image.src),
     address: postalAddress(),
     geo: geoCoordinates(),
+    hasMap: BUSINESS.links.googleMaps,
     priceRange: '$$',
     sameAs: Object.values(BUSINESS.social),
   }

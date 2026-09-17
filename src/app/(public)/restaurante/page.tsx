@@ -96,10 +96,10 @@ export default function RestaurantePage() {
 
           <article className="overflow-hidden rounded-2xl border-2 border-accent/40 bg-accent/5 sm:grid sm:grid-cols-5">
             <Image
-              src={IMAGES['almuerzo-tipico-vertical'].src}
-              alt="Almuerzo típico del restaurante Loma Bonita"
-              width={IMAGES['almuerzo-tipico-vertical'].w}
-              height={IMAGES['almuerzo-tipico-vertical'].h}
+              src={IMAGES['plato-de-la-casa'].src}
+              alt="Plato de la Casa: nuestra versión de la bandeja paisa en Finca Hotel Loma Bonita"
+              width={IMAGES['plato-de-la-casa'].w}
+              height={IMAGES['plato-de-la-casa'].h}
               sizes="(min-width: 640px) 40vw, 100vw"
               className="h-56 w-full object-cover sm:col-span-2 sm:h-full"
             />

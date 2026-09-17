@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, Check, ChevronRight, ChevronLeft, Calendar, Users, Mail, Phone, Building2, User } from 'lucide-react'
 import { Button } from '@/core/ui/button'
 import { Input } from '@/core/ui/input'
@@ -41,9 +41,13 @@ type WizardState = {
 
 export function WizardCorporativo() {
   const router = useRouter()
-  const [state, setState] = useState<WizardState>({
+  // Preselección desde los botones "Cotizar" de la página (?tipo=<slug>#wizard).
+  // useSearchParams es determinista en cliente y SSR (bajo Suspense), a diferencia de
+  // leer window.location en el inicializador, que dependía del timing de hidratación.
+  const tipoInicial = useSearchParams().get('tipo') ?? ''
+  const [state, setState] = useState<WizardState>(() => ({
     paso: 1,
-    tipoExperiencia: '',
+    tipoExperiencia: tipoInicial,
     incluir: [],
     experiencias: [],
     destinos: [],
@@ -53,7 +57,7 @@ export function WizardCorporativo() {
     empresa: '',
     email: '',
     whatsapp: '',
-  })
+  }))
 
   const [tipos, setTipos] = useState<CorpExperienceType[]>([])
   const [addonsIncluir, setAddonsIncluir] = useState<CorpAddon[]>([])
@@ -63,19 +67,29 @@ export function WizardCorporativo() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [cargandoTipos, setCargandoTipos] = useState(true)
+  const [errorCarga, setErrorCarga] = useState(false)
 
   useEffect(() => {
     async function loadData() {
-      const [t, aI, aE, aD] = await Promise.all([
-        getExperienceTypes(),
-        getAddons('incluir'),
-        getAddons('experiencia'),
-        getAddons('destino'),
-      ])
-      setTipos(t)
-      setAddonsIncluir(aI)
-      setAddonsExperiencias(aE)
-      setAddonsDestinos(aD)
+      setCargandoTipos(true)
+      setErrorCarga(false)
+      try {
+        const [t, aI, aE, aD] = await Promise.all([
+          getExperienceTypes(),
+          getAddons('incluir'),
+          getAddons('experiencia'),
+          getAddons('destino'),
+        ])
+        setTipos(t)
+        setAddonsIncluir(aI)
+        setAddonsExperiencias(aE)
+        setAddonsDestinos(aD)
+      } catch {
+        setErrorCarga(true)
+      } finally {
+        setCargandoTipos(false)
+      }
     }
     loadData()
   }, [])
@@ -210,23 +224,46 @@ export function WizardCorporativo() {
               equipo.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {tipos.map((tipo) => (
-              <button
-                key={tipo.slug}
-                onClick={() => setState((prev) => ({ ...prev, tipoExperiencia: tipo.slug }))}
-                className={cn(
-                  'rounded-lg border-2 p-6 text-left transition-all hover:border-amber-600',
-                  state.tipoExperiencia === tipo.slug
-                    ? 'border-amber-600 bg-amber-50'
-                    : 'border-neutral-200 bg-white',
-                )}
-              >
-                <h4 className="mb-2 font-bold uppercase tracking-wide text-amber-900">{tipo.nombre}</h4>
-                <p className="text-sm text-neutral-700">{tipo.descripcion}</p>
-              </button>
-            ))}
-          </div>
+          {cargandoTipos ? (
+            <div className="flex items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-10 text-neutral-600">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Cargando opciones…
+            </div>
+          ) : errorCarga || tipos.length === 0 ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center text-amber-900">
+              <p className="font-medium">No pudimos cargar las opciones en este momento.</p>
+              <p className="mt-1 text-sm">
+                Escríbenos por WhatsApp y armamos tu experiencia corporativa a la medida.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {tipos.map((tipo) => (
+                <button
+                  key={tipo.slug}
+                  onClick={() => setState((prev) => ({ ...prev, tipoExperiencia: tipo.slug }))}
+                  className={cn(
+                    'rounded-lg border-2 p-6 text-left transition-all hover:border-amber-600',
+                    state.tipoExperiencia === tipo.slug
+                      ? 'border-amber-600 bg-amber-50 ring-2 ring-amber-600/30'
+                      : 'border-neutral-200 bg-white',
+                  )}
+                  aria-pressed={state.tipoExperiencia === tipo.slug}
+                >
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <h4 className="font-bold uppercase tracking-wide text-amber-900">{tipo.nombre}</h4>
+                    {state.tipoExperiencia === tipo.slug && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-600 px-2 py-0.5 text-xs font-semibold text-white">
+                        <Check className="h-3 w-3" />
+                        Elegido
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-neutral-700">{tipo.descripcion}</p>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

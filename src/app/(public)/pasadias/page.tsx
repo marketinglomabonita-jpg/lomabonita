@@ -35,7 +35,7 @@ const BALSAJE = PASS_PLANS.find((p) => p.id === 'balsaje') ?? PASS_PLANS[0]
 
 export const metadata: Metadata = buildPageMetadata({
   title: `Pasadía en Cartago con piscina y almuerzo desde ${BASIC_PRICE}`,
-  description: `Pasadía en Cartago, vía Alcalá, desde ${BASIC_PRICE}: piscina, almuerzo típico, minifútbol, billar, juegos infantiles y gimnasio. Loma Relax, Loma Racing con karts, Loma Aventura de Río con balsaje por el Río La Vieja y Loma Cascadas.`,
+  description: `Pasadía en Cartago, vía Alcalá, desde ${BASIC_PRICE}: piscina, almuerzo típico, minifútbol, billar, juegos infantiles y gimnasio. Loma Relax, Loma Racing con karts, Loma Aventura Balsaje con balsaje por el Río La Vieja y Loma Aventura Cascadas.`,
   path: '/pasadias',
   image: IMAGES['piscina-recreativa'],
   imageAlt: 'Piscina recreativa de la Finca Hotel Loma Bonita para pasadía en Cartago',
@@ -60,7 +60,7 @@ const ZONAS: { image: ImageAsset; alt: string; caption: string }[] = [
 const FAQS: FaqItem[] = [
   {
     question: '¿Cuánto vale la pasadía en Finca Hotel Loma Bonita?',
-    answer: `Loma Relax cuesta ${BASIC_PRICE} por persona e incluye todas las áreas comunes y el almuerzo. También tenemos Loma Racing (${priceOf('karts')}), Loma Cascadas (${priceOf('cascadas')}) y Loma Aventura de Río (${priceOf('balsaje')}).`,
+    answer: `Loma Relax cuesta ${BASIC_PRICE} por persona e incluye todas las áreas comunes y el almuerzo. También tenemos Loma Racing (${priceOf('karts')}), Loma Aventura Cascadas (${priceOf('cascadas')}) y Loma Aventura Balsaje (${priceOf('balsaje')}).`,
   },
   {
     question: '¿Qué incluye Loma Relax?',
@@ -68,9 +68,14 @@ const FAQS: FaqItem[] = [
       'Piscina, zona de restaurante, juegos infantiles, cancha de minifútbol, salón de billar y juegos de mesa, gimnasio, parqueadero, tienda de mecatos y almuerzo a elegir entre las opciones disponibles del día.',
   },
   {
-    question: '¿Cómo es Loma Aventura de Río, el balsaje por el Río La Vieja?',
+    question: '¿Cómo es Loma Aventura Balsaje, el balsaje por el Río La Vieja?',
     answer:
       'Incluye todo lo de Loma Relax, transporte en jeep o Willys desde la finca hasta Puerto Alejandría pasando por Alcalá y Quimbaya, el recorrido en balsa por el Río La Vieja disfrutando del paisaje y un fiambre típico.',
+  },
+  {
+    question: '¿Qué incluye Loma Aventura Cascadas?',
+    answer:
+      'Todo lo de Loma Relax más la salida a la Cascada Los Micos: paseo en bote por el Río La Vieja desde la finca, caminata de unos 20 minutos entre naturaleza, baño en la cascada y regreso en bote hasta Finca Hotel Loma Bonita.',
   },
   {
     question: '¿Cómo reservo mi pasadía?',
@@ -108,7 +113,7 @@ export default function PasadiasPage() {
       <JsonLd data={faqJsonLd(FAQS)} />
       <JsonLd
         data={touristAttractionJsonLd({
-          name: 'Balsaje por el Río La Vieja — Loma Aventura de Río',
+          name: 'Balsaje por el Río La Vieja — Loma Aventura Balsaje',
           description: BALSAJE.description,
           image: BALSAJE.image,
           touristType: ['Familias', 'Grupos de amigos', 'Turismo de aventura'],
@@ -238,7 +243,7 @@ export default function PasadiasPage() {
               className={buttonVariants({ variant: 'accent' })}
             >
               <WhatsAppIcon className="size-4" />
-              Reservar Loma Aventura de Río
+              Reservar Loma Aventura Balsaje
             </a>
           </div>
         </div>
@@ -268,7 +273,7 @@ export default function PasadiasPage() {
           <WhatsAppBooking
             title="¿Cómo reservar tu pasadía?"
             steps={[
-              'Elige tu pasadía: Loma Relax, Loma Racing, Loma Cascadas o Loma Aventura de Río.',
+              'Elige tu pasadía: Loma Relax, Loma Racing, Loma Aventura Cascadas o Loma Aventura Balsaje.',
               'Escríbenos por WhatsApp con la fecha y el número de personas.',
               'Te confirmamos disponibilidad, separas tu cupo y llegas desde las 9:00 a.m.',
             ]}

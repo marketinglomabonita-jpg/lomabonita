@@ -83,6 +83,9 @@ graphify-out/
 supabase/.branches
 supabase/.temp
 
+# Fuentes de imágenes sin optimizar (ya convertidas a WebP en public/img/)
+fotos habitaciones/
+
 # --- Loma Bonita: el repo del cliente lleva el producto, no el sistema de desarrollo Praxis ---
 # Se conservan (versionados): CLAUDE.md, AGENTS.md, docs/, .claude/PRPs/, .claude/settings.json
 # Se excluye el tooling voluminoso:

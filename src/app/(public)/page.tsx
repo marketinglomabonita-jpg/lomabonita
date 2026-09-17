@@ -64,7 +64,7 @@ const SERVICES = [
     imageAlt: 'Piscina recreativa con aguas cristalinas',
     title: 'Pasadías',
     description:
-      'Loma Relax desde $45.000 con piscina, almuerzo, minifútbol, billar y gimnasio. Súbele con Loma Racing, Loma Cascadas o Loma Aventura de Río.',
+      'Loma Relax desde $45.000 con piscina, almuerzo, minifútbol, billar y gimnasio. Súbele con Loma Racing, Loma Aventura Cascadas o Loma Aventura Balsaje.',
   },
   {
     href: '/restaurante',
@@ -74,15 +74,6 @@ const SERVICES = [
     title: 'Restaurante campestre',
     description:
       'La mejor sazón típica de la región: platos tradicionales con ingredientes frescos de la zona, al aire libre.',
-  },
-  {
-    href: '/pasadias#plan-balsaje',
-    icon: Route,
-    image: IMAGES['visitantes-pasadia'],
-    imageAlt: 'Visitantes disfrutando una tarde de pasadía',
-    title: 'Aventuras Loma',
-    description:
-      '🏎️ Loma Racing, 💦 Loma Cascadas y 🛶 Loma Aventura de Río: karts, cascadas y balsaje por el Río La Vieja.',
   },
   {
     href: '/galeria',
@@ -153,7 +144,7 @@ const FAQS: FaqItem[] = [
   {
     question: '¿Qué incluye la pasadía en Finca Loma Bonita?',
     answer:
-      'Loma Relax ($45.000 por persona) incluye piscina, zona de restaurante, juegos infantiles, cancha de minifútbol, salón de billar y juegos de mesa, gimnasio, parqueadero, tienda de mecatos y almuerzo. También están Loma Racing (karts), Loma Cascadas y Loma Aventura de Río (balsaje). El ingreso es desde las 9:00 a.m.',
+      'Loma Relax ($45.000 por persona) incluye piscina, zona de restaurante, juegos infantiles, cancha de minifútbol, salón de billar y juegos de mesa, gimnasio, parqueadero, tienda de mecatos y almuerzo. También están Loma Racing (karts), Loma Aventura Cascadas y Loma Aventura Balsaje (balsaje). El ingreso es desde las 9:00 a.m.',
   },
   {
     question: '¿Cuál es la distancia a los principales parques del Eje Cafetero?',
@@ -290,10 +281,10 @@ export default function HomePage() {
           <div className="relative mx-auto w-full max-w-md lg:max-w-none">
             <div className="overflow-hidden rounded-xl shadow-lg">
               <Image
-                src={IMAGES['entrada-finca-loma-bonita'].src}
-                alt="Entrada campestre de la Finca Loma Bonita en Piedras de Moler"
-                width={IMAGES['entrada-finca-loma-bonita'].w}
-                height={IMAGES['entrada-finca-loma-bonita'].h}
+                src={IMAGES['piscinas-2-vertical'].src}
+                alt="Piscina y jacuzzi de la Finca Loma Bonita rodeados de palmeras"
+                width={IMAGES['piscinas-2-vertical'].w}
+                height={IMAGES['piscinas-2-vertical'].h}
                 sizes="(min-width: 1024px) 50vw, 100vw"
                 className="h-auto w-full object-cover"
               />

@@ -38,15 +38,14 @@ export const BUSINESS = {
   legalName: 'Finca Hotel Loma Bonita',
   shortName: 'Loma Bonita',
   slogan: 'Naturaleza, diversion y tranquilidad',
-  // Direccion aproximada del prototipo; el propietario confirma la exacta + coordenadas del pin de Maps.
   address: {
     street: 'Piedras de Moler, Via Alcala',
     locality: 'Cartago',
     region: 'Valle del Cauca',
     country: 'CO',
   },
-  // Coordenadas provisionales (prototipo). Reemplazar por el pin real de Google Maps.
-  geo: { lat: 4.7123, lng: -75.8912, approximate: true },
+  // Coordenadas reales del pin de Google Maps de la finca.
+  geo: { lat: 4.710414, lng: -75.8561206 },
   phones: ['+573102913182', '+573244971602'],
   whatsapp: '573102913182',
   email: null as string | null,
@@ -65,7 +64,7 @@ export const BUSINESS = {
   // Enlaces de navegacion externa (anadidos en Fase 1: no existian en Fase 0).
   links: {
     instagramHandle: '@fincahotel.lomabonita',
-    googleMaps: 'https://maps.google.com/?q=Finca+Loma+Bonita+Cartago+Piedras+de+Moler',
-    waze: 'https://waze.com/ul?q=Finca+Loma+Bonita+Cartago',
+    googleMaps: 'https://maps.app.goo.gl/r463QtgdDCKxHZHs6',
+    waze: `https://waze.com/ul?ll=${4.710414},${-75.8561206}&navigate=yes`,
   },
 } as const
