@@ -502,5 +502,26 @@
     "h": 1086,
     "bytes": 294014,
     "original": "zonas de descanso -vista a la piscina y la montaña.jpeg"
+  },
+  "pasadia-balsaje": {
+    "src": "/img/pasadia-balsaje.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 280426,
+    "original": "balsaje loma bonita.png"
+  },
+  "pasadia-cascadas": {
+    "src": "/img/pasadia-cascadas.webp",
+    "w": 1500,
+    "h": 1000,
+    "bytes": 275352,
+    "original": "pasadia cascadas loma bonita.png"
+  },
+  "pasadia-karts": {
+    "src": "/img/pasadia-karts.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 244976,
+    "original": "pasadia cars loma bonita.png"
   }
 }

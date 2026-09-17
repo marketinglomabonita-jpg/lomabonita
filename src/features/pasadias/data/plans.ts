@@ -39,8 +39,8 @@ export const PASS_PLANS: PassPlan[] = [
     description:
       'Piscina, deporte, juegos y almuerzo típico en un solo plan. La forma más fácil de salir de Cartago y pasar un día entero en el campo sin preocuparte por nada.',
     extras: [],
-    image: IMAGES['piscina-nocturna'],
-    imageAlt: 'Piscina de la Finca Hotel Loma Bonita, incluida en la pasadía Loma Relax',
+    image: IMAGES['visitantes-pasadia'],
+    imageAlt: 'Visitantes disfrutando su pasadía con almuerzo típico en Finca Hotel Loma Bonita',
   },
   {
     id: 'karts',
@@ -51,8 +51,8 @@ export const PASS_PLANS: PassPlan[] = [
     description:
       'Todo lo de Loma Relax y además la emoción de la pista de karts. Para los que quieren algo más que piscina: carreras entre amigos, primos o compañeros de trabajo.',
     extras: [{ title: 'Pista de karts', detail: 'Velocidad y competencia sana en la finca.' }],
-    image: IMAGES['primera-seccion-finca-loma-bonita'],
-    imageAlt: 'Zonas verdes de la Finca Hotel Loma Bonita para la pasadía Loma Racing',
+    image: IMAGES['pasadia-karts'],
+    imageAlt: 'Cars en la pista de la pasadía Loma Racing',
   },
   {
     id: 'balsaje',
@@ -73,8 +73,8 @@ export const PASS_PLANS: PassPlan[] = [
       },
       { title: 'Fiambre típico', detail: 'El almuerzo tradicional envuelto en hoja de plátano.' },
     ],
-    image: IMAGES['loma-bonita'],
-    imageAlt: 'Paisaje de la Finca Hotel Loma Bonita, punto de partida del balsaje',
+    image: IMAGES['pasadia-balsaje'],
+    imageAlt: 'Balsas de guadua con visitantes navegando el Río La Vieja',
     featured: true,
   },
   {
@@ -103,8 +103,8 @@ export const PASS_PLANS: PassPlan[] = [
         detail: 'El río otra vez, de vuelta a la piscina y a las zonas de descanso.',
       },
     ],
-    image: IMAGES['zonas-de-descanso-vista-a-la-piscina-y-la-montana'],
-    imageAlt: 'Vista a la montaña desde la Finca Hotel Loma Bonita',
+    image: IMAGES['pasadia-cascadas'],
+    imageAlt: 'Cascada Los Micos y recorrido en bote por el Río La Vieja',
   },
 ]
 
