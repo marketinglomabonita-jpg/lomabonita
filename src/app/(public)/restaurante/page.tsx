@@ -51,7 +51,7 @@ const FAQS: FaqItem[] = [
   {
     question: '¿El almuerzo está incluido en la pasadía?',
     answer:
-      'Sí. Todos los planes de pasadía incluyen almuerzo: eliges entre las opciones disponibles ese día.',
+      'Sí. Todas nuestras pasadías (Loma Relax, Racing, Cascadas y Aventura de Río) incluyen almuerzo: eliges entre las opciones disponibles ese día.',
   },
   {
     question: '¿Puedo reservar mesa para un grupo o una celebración?',
@@ -171,7 +171,7 @@ export default function RestaurantePage() {
             <p className="text-sm">
               ¿Vienes a pasar el día?{' '}
               <Link href="/pasadias" className="font-medium text-primary hover:underline">
-                Todos nuestros planes de pasadía
+                Todas nuestras pasadías
               </Link>{' '}
               incluyen almuerzo. ¿Te quedas la noche?{' '}
               <Link href="/hospedaje" className="font-medium text-primary hover:underline">

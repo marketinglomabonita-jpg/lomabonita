@@ -13,11 +13,11 @@ export type Experience = {
 
 function planPrice(id: Experience['id']): string {
   const plan = PASS_PLANS.find((p) => p.id === id)
-  return plan ? `${plan.name}: ${formatCop(plan.price)} por persona` : ''
+  return plan ? `${plan.emoji} ${plan.name}: ${formatCop(plan.price)} por persona` : ''
 }
 
 /**
- * Experiencias reales (se venden como planes de pasadia: Plan Basico + experiencia).
+ * Experiencias reales (se venden como pasadias Loma: Loma Relax + experiencia).
  * Reservas por WhatsApp, sujetas a disponibilidad; el motor de tickets llega en la v3.
  */
 export const EXPERIENCES: Experience[] = [
@@ -28,11 +28,11 @@ export const EXPERIENCES: Experience[] = [
     description:
       'Siente la velocidad en nuestra pista de karts, el complemento perfecto para tu pasadía o tu estadía. Compite con tu familia, tus amigos o tu equipo de trabajo en un ambiente campestre.',
     details: [
-      'Incluye todo el Plan Básico de pasadía',
+      'Incluye todo lo de la pasadía Loma Relax',
       'Ideal para jóvenes, adultos y grupos',
       planPrice('karts'),
     ],
-    ctaMessage: '¡Hola! Quiero reservar el Plan Karts en Finca Hotel Loma Bonita.',
+    ctaMessage: '¡Hola! Quiero reservar la pasadía Loma Racing en Finca Hotel Loma Bonita.',
   },
   {
     id: 'cascadas',
@@ -41,11 +41,11 @@ export const EXPERIENCES: Experience[] = [
     description:
       'Sal de la piscina y conoce las cascadas de la zona: un plan de naturaleza para respirar aire puro y ver de cerca el paisaje del norte del Valle y el Eje Cafetero.',
     details: [
-      'Incluye todo el Plan Básico de pasadía',
+      'Incluye todo lo de la pasadía Loma Relax',
       'Plan de naturaleza para familias y amigos',
       planPrice('cascadas'),
     ],
-    ctaMessage: '¡Hola! Quiero reservar el Plan Cascadas en Finca Hotel Loma Bonita.',
+    ctaMessage: '¡Hola! Quiero reservar la pasadía Loma Cascadas en Finca Hotel Loma Bonita.',
   },
   {
     id: 'balsaje',
@@ -58,10 +58,10 @@ export const EXPERIENCES: Experience[] = [
       'Ruta por Alcalá y Quimbaya hasta Puerto Alejandría',
       'Recorrido en balsa por el Río La Vieja',
       'Fiambre típico',
-      'Incluye todo el Plan Básico de pasadía',
+      'Incluye todo lo de la pasadía Loma Relax',
       planPrice('balsaje'),
     ],
-    ctaMessage: '¡Hola! Quiero reservar el Plan Balsaje por el Río La Vieja en Finca Hotel Loma Bonita.',
+    ctaMessage: '¡Hola! Quiero reservar la pasadía Loma Aventura de Río en Finca Hotel Loma Bonita.',
     featured: true,
   },
 ]

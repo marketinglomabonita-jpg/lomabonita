@@ -64,7 +64,7 @@ const SERVICES = [
     imageAlt: 'Piscina recreativa con aguas cristalinas',
     title: 'Pasadías',
     description:
-      'Planes desde $45.000 con piscina, almuerzo, minifútbol, billar y gimnasio. Súmale karts, cascadas o balsaje.',
+      'Loma Relax desde $45.000 con piscina, almuerzo, minifútbol, billar y gimnasio. Súbele con Loma Racing, Loma Cascadas o Loma Aventura de Río.',
   },
   {
     href: '/restaurante',
@@ -153,7 +153,7 @@ const FAQS: FaqItem[] = [
   {
     question: '¿Qué incluye la pasadía en Finca Loma Bonita?',
     answer:
-      'El Plan Básico ($45.000 por persona) incluye piscina, zona de restaurante, juegos infantiles, cancha de minifútbol, salón de billar y juegos de mesa, gimnasio, parqueadero, tienda de mecatos y almuerzo. También hay planes con karts, cascadas y balsaje. El ingreso es desde las 9:00 a.m.',
+      'Loma Relax ($45.000 por persona) incluye piscina, zona de restaurante, juegos infantiles, cancha de minifútbol, salón de billar y juegos de mesa, gimnasio, parqueadero, tienda de mecatos y almuerzo. También están Loma Racing (karts), Loma Cascadas y Loma Aventura de Río (balsaje). El ingreso es desde las 9:00 a.m.',
   },
   {
     question: '¿Cuál es la distancia a los principales parques del Eje Cafetero?',

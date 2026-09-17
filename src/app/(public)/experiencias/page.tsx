@@ -128,7 +128,7 @@ export default function ExperienciasPage() {
           <SectionHeading
             tag="Nuestras experiencias"
             title="Tres maneras de vivir la región"
-            subtitle="Cada experiencia incluye el Plan Básico de pasadía. Reservas por WhatsApp, sujetas a disponibilidad."
+            subtitle="Cada una incluye todo lo de la pasadía Loma Relax. Reservas por WhatsApp, sujetas a disponibilidad."
           />
           {EXPERIENCES.map((experience) => (
             <ExperienceCard key={experience.id} experience={experience} />
@@ -157,7 +157,7 @@ export default function ExperienciasPage() {
                 <p className="mt-2 text-sm leading-relaxed text-foreground/85">
                   Sales de la finca en jeep o Willys, pasas por Alcalá y Quimbaya hasta
                   Puerto Alejandría, navegas el río con fiambre típico y además
-                  disfrutas todo el Plan Básico: piscina, almuerzo, juegos y zonas de
+                  disfrutas todo lo de Loma Relax: piscina, almuerzo, juegos y zonas de
                   descanso a 2 minutos del Río La Vieja.
                 </p>
               </div>
@@ -165,7 +165,7 @@ export default function ExperienciasPage() {
             <div className="flex flex-wrap justify-center gap-3 pt-2">
               <a
                 href={waLink(
-                  '¡Hola! Quiero reservar el Plan Balsaje por el Río La Vieja en Finca Hotel Loma Bonita.',
+                  '¡Hola! Quiero reservar Loma Aventura de Río (balsaje por el Río La Vieja) en Finca Hotel Loma Bonita.',
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -176,7 +176,7 @@ export default function ExperienciasPage() {
               </a>
               <Link href="/pasadias" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
                 <MapPin aria-hidden="true" />
-                Ver planes de pasadía
+                Ver pasadías Loma
               </Link>
             </div>
           </div>

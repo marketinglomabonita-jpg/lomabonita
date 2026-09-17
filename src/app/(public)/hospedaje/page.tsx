@@ -219,7 +219,7 @@ export default function HospedajePage() {
                 />
                 <div className="flex flex-1 flex-col gap-3 p-5">
                   <p className="text-xs font-semibold uppercase tracking-wide text-accent">
-                    Hospedaje + {plan.name.replace('Plan ', '')}
+                    Hospedaje + {plan.emoji} {plan.name}
                   </p>
                   <h3 className="font-display text-xl font-semibold text-cafe">{plan.tagline}</h3>
                   <ul className="space-y-1 text-sm text-muted-foreground">
@@ -248,7 +248,7 @@ export default function HospedajePage() {
           <p className="text-center text-sm text-muted-foreground">
             ¿Solo vienes por el día?{' '}
             <Link href="/pasadias" className="font-medium text-primary hover:underline">
-              Mira nuestros planes de pasadía
+              Mira nuestras pasadías Loma
             </Link>{' '}
             o{' '}
             <Link href="/restaurante" className="font-medium text-primary hover:underline">

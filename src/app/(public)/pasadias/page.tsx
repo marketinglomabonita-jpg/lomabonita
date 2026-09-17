@@ -33,7 +33,7 @@ const BASIC_PRICE = priceOf('basico')
 
 export const metadata: Metadata = buildPageMetadata({
   title: `Pasadía en Cartago con piscina y almuerzo desde ${BASIC_PRICE}`,
-  description: `Pasadía en Cartago, vía Alcalá, desde ${BASIC_PRICE}: piscina, almuerzo típico, minifútbol, billar, juegos infantiles y gimnasio. Planes con karts, balsaje por el Río La Vieja y cascadas en el Eje Cafetero.`,
+  description: `Pasadía en Cartago, vía Alcalá, desde ${BASIC_PRICE}: piscina, almuerzo típico, minifútbol, billar, juegos infantiles y gimnasio. Loma Relax, Loma Racing con karts, Loma Aventura de Río con balsaje por el Río La Vieja y Loma Cascadas.`,
   path: '/pasadias',
   image: IMAGES['piscina-recreativa'],
   imageAlt: 'Piscina recreativa de la Finca Hotel Loma Bonita para pasadía en Cartago',
@@ -43,7 +43,7 @@ const CONDICIONES = [
   { icon: Sun, title: 'Horario', text: `${BUSINESS.hours.pasadia}. Llega temprano y aprovecha el día completo.` },
   { icon: Clock, title: 'Reserva previa', text: `Cupos sujetos a disponibilidad. Atendemos reservas ${BUSINESS.hours.reservas.toLowerCase()}.` },
   { icon: ParkingCircle, title: 'Parqueadero', text: 'Parqueadero privado dentro de la finca.' },
-  { icon: ShieldCheck, title: 'Plan familiar', text: 'Ambiente sano y tranquilo para niños, jóvenes, adultos y grupos.' },
+  { icon: ShieldCheck, title: 'Ambiente familiar', text: 'Ambiente sano y tranquilo para niños, jóvenes, adultos y grupos.' },
 ]
 
 const ZONAS: { image: ImageAsset; alt: string; caption: string }[] = [
@@ -58,22 +58,22 @@ const ZONAS: { image: ImageAsset; alt: string; caption: string }[] = [
 const FAQS: FaqItem[] = [
   {
     question: '¿Cuánto vale la pasadía en Finca Hotel Loma Bonita?',
-    answer: `El Plan Básico cuesta ${BASIC_PRICE} por persona e incluye todas las áreas comunes y el almuerzo. También tenemos Plan Karts (${priceOf('karts')}), Plan Cascadas (${priceOf('cascadas')}) y Plan Balsaje (${priceOf('balsaje')}).`,
+    answer: `Loma Relax cuesta ${BASIC_PRICE} por persona e incluye todas las áreas comunes y el almuerzo. También tenemos Loma Racing (${priceOf('karts')}), Loma Cascadas (${priceOf('cascadas')}) y Loma Aventura de Río (${priceOf('balsaje')}).`,
   },
   {
-    question: '¿Qué incluye el Plan Básico?',
+    question: '¿Qué incluye Loma Relax?',
     answer:
       'Piscina, zona de restaurante, juegos infantiles, cancha de minifútbol, salón de billar y juegos de mesa, gimnasio, parqueadero, tienda de mecatos y almuerzo a elegir entre las opciones disponibles del día.',
   },
   {
-    question: '¿Cómo es el Plan Balsaje por el Río La Vieja?',
+    question: '¿Cómo es Loma Aventura de Río, el balsaje por el Río La Vieja?',
     answer:
-      'Incluye todo el Plan Básico, transporte en jeep o Willys desde la finca hasta Puerto Alejandría pasando por Alcalá y Quimbaya, el recorrido en balsa por el Río La Vieja disfrutando del paisaje y un fiambre típico.',
+      'Incluye todo lo de Loma Relax, transporte en jeep o Willys desde la finca hasta Puerto Alejandría pasando por Alcalá y Quimbaya, el recorrido en balsa por el Río La Vieja disfrutando del paisaje y un fiambre típico.',
   },
   {
     question: '¿Cómo reservo mi pasadía?',
     answer:
-      'Escríbenos por WhatsApp con la fecha, el plan y el número de personas. Te confirmamos disponibilidad y separas tu cupo. Todos los planes están sujetos a disponibilidad.',
+      'Escríbenos por WhatsApp con la fecha, la pasadía que elegiste y el número de personas. Te confirmamos disponibilidad y separas tu cupo. Todas las pasadías están sujetas a disponibilidad.',
   },
   {
     question: '¿Dónde queda la finca para una pasadía cerca de Cartago?',
@@ -81,7 +81,7 @@ const FAQS: FaqItem[] = [
       'En Piedras de Moler, sobre la vía Cartago–Alcalá, a pocos minutos de Cartago y junto al Río La Vieja, en el límite entre Valle del Cauca y Quindío.',
   },
   {
-    question: '¿Es un buen plan para grupos y empresas?',
+    question: '¿Las pasadías sirven para grupos y empresas?',
     answer:
       'Sí. Recibimos familias, grupos de amigos y empresas. Para integraciones corporativas también puedes ver nuestro portafolio de experiencias corporativas.',
   },
@@ -98,7 +98,7 @@ export default function PasadiasPage() {
       />
       <JsonLd
         data={offerCatalogJsonLd({
-          name: 'Planes de pasadía Finca Hotel Loma Bonita',
+          name: 'Pasadías Finca Hotel Loma Bonita',
           path: '/pasadias',
           offers: PASS_PLANS.map((p) => ({ name: p.name, description: p.description, price: p.price })),
         })}
@@ -108,12 +108,12 @@ export default function PasadiasPage() {
       <PageHero
         tag="Pasadía en Cartago"
         title="Un día entero de piscina, sol y almuerzo típico"
-        description={`Planes de pasadía desde ${BASIC_PRICE} por persona en Piedras de Moler, vía Alcalá. Todo incluido: piscina, deporte, juegos, gimnasio y almuerzo. Súmale karts, cascadas o balsaje por el Río La Vieja.`}
+        description={`Pasadías desde ${BASIC_PRICE} por persona en Piedras de Moler, vía Alcalá. Todo incluido: piscina, deporte, juegos, gimnasio y almuerzo. Súmale karts, cascadas o balsaje por el Río La Vieja.`}
         image={IMAGES['piscina-recreativa']}
         imageAlt="Piscina recreativa de la Finca Hotel Loma Bonita"
       />
 
-      <nav aria-label="Planes de pasadía" className="border-b border-border bg-muted/40">
+      <nav aria-label="Pasadías disponibles" className="border-b border-border bg-muted/40">
         <div className="container grid grid-cols-2 gap-3 py-6 lg:grid-cols-4">
           {PASS_PLANS.map((plan) => (
             <a
@@ -121,7 +121,9 @@ export default function PasadiasPage() {
               href={`#plan-${plan.id}`}
               className="rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-primary"
             >
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">{plan.name}</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                <span aria-hidden="true">{plan.emoji}</span> {plan.name}
+              </p>
               <p className="text-lg font-semibold text-cafe">{formatCop(plan.price)}</p>
             </a>
           ))}
@@ -131,9 +133,9 @@ export default function PasadiasPage() {
       <section className="py-16">
         <div className="container space-y-10">
           <SectionHeading
-            tag="Planes de pasadía"
-            title="Elige tu plan: todos incluyen la finca completa"
-            subtitle="Cada plan trae todo lo del Plan Básico. Los planes con experiencia suman la aventura encima."
+            tag="Pasadías Loma"
+            title="Elige tu pasadía: todas incluyen la finca completa"
+            subtitle="Cada pasadía trae todo lo de Loma Relax. Racing, Aventura de Río y Cascadas suman la emoción encima."
           />
           <div className="grid items-start gap-8 lg:grid-cols-2">
             {PASS_PLANS.map((plan) => (
@@ -141,7 +143,7 @@ export default function PasadiasPage() {
             ))}
           </div>
           <p className="text-center text-xs text-muted-foreground">
-            Valores por persona. Todos los planes están sujetos a disponibilidad.
+            Valores por persona. Todas las pasadías están sujetas a disponibilidad.
           </p>
         </div>
       </section>
@@ -152,7 +154,7 @@ export default function PasadiasPage() {
             <SectionHeading
               align="left"
               tag="La mejor pasadía cerca de Cartago"
-              title="El plan de fin de semana a minutos de la ciudad"
+              title="Tu fin de semana en el campo, a minutos de la ciudad"
             />
             <p className="text-muted-foreground">
               Si vives en Cartago o en el norte del Valle y buscas qué hacer el fin de semana,
@@ -225,7 +227,7 @@ export default function PasadiasPage() {
               className={buttonVariants({ variant: 'accent' })}
             >
               <WhatsAppIcon className="size-4" />
-              Reservar Plan Balsaje
+              Reservar Loma Aventura de Río
             </a>
           </div>
         </div>
@@ -255,11 +257,11 @@ export default function PasadiasPage() {
           <WhatsAppBooking
             title="¿Cómo reservar tu pasadía?"
             steps={[
-              'Elige tu plan: Básico, Karts, Cascadas o Balsaje.',
+              'Elige tu pasadía: Loma Relax, Loma Racing, Loma Cascadas o Loma Aventura de Río.',
               'Escríbenos por WhatsApp con la fecha y el número de personas.',
               'Te confirmamos disponibilidad, separas tu cupo y llegas desde las 9:00 a.m.',
             ]}
-            message="¡Hola! Quiero reservar una pasadía en Finca Hotel Loma Bonita. Plan: ___ · Fecha: ___ · Personas: ___"
+            message="¡Hola! Quiero reservar una pasadía en Finca Hotel Loma Bonita. Pasadía: ___ · Fecha: ___ · Personas: ___"
             cta="Reservar por WhatsApp"
           />
           <div className="space-y-6">
@@ -293,7 +295,7 @@ function PlanCard({ plan }: { plan: PassPlan }) {
         />
         {plan.featured && (
           <span className="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-white">
-            Experiencia insignia
+            Aventura insignia
           </span>
         )}
       </div>
@@ -301,7 +303,9 @@ function PlanCard({ plan }: { plan: PassPlan }) {
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-accent">{plan.tagline}</p>
-            <h3 className="font-display text-2xl font-semibold text-cafe">{plan.name}</h3>
+            <h3 className="font-display text-2xl font-semibold text-cafe">
+              <span aria-hidden="true">{plan.emoji}</span> {plan.name}
+            </h3>
           </div>
           <p className="sm:text-right">
             <span className="text-3xl font-bold text-cafe">{formatCop(plan.price)}</span>
@@ -314,7 +318,7 @@ function PlanCard({ plan }: { plan: PassPlan }) {
           highlights={plan.extras}
           footer={
             <p className="text-sm">
-              {isBasic ? 'Todo esto' : `Todo el Plan Básico + ${plan.extras.length === 1 ? plan.extras[0].title.toLowerCase() : 'la experiencia completa'}`}{' '}
+              {isBasic ? 'Todo esto' : `Todo lo de Loma Relax + ${plan.extras.length === 1 ? plan.extras[0].title.toLowerCase() : 'la experiencia completa'}`}{' '}
               por solo <span className="font-semibold text-cafe">{formatCop(plan.price)}</span>
             </p>
           }
