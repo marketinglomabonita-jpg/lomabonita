@@ -36,7 +36,7 @@ check('B5 plato de la casa con foto propia', /plato/i.test(rest) && Object.keys(
 
 // Fase C — inicio
 const servicios = (home.match(/href: '\/(hospedaje|pasadias|restaurante|galeria|contacto)/g) || []).length
-check('C1 5 tarjetas en "Qué te espera"', servicios === 5, `${servicios} tarjetas`)
+check('C1 3 tarjetas en "Qué te espera" (Hospedaje, Pasadías, Restaurante)', servicios === 3, `${servicios} tarjetas`)
 check('C2 sin tarjeta Aventuras Loma', !home.includes('Aventuras Loma'))
 // La imagen de "Nuestra esencia" se renderiza ANTES del encabezado (imagen | texto).
 check('C3 "Nuestra esencia" sin la foto de la entrada', !home.includes('entrada-finca-loma-bonita'))

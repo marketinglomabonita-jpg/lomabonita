@@ -4,11 +4,9 @@ import type { Metadata } from 'next'
 import {
   ArrowRight,
   BedDouble,
-  Car,
   Clock,
   Leaf,
   MapPin,
-  Route,
   Smile,
   Sun,
   TreePine,
@@ -22,6 +20,7 @@ import { cn } from '@/core/lib/utils'
 import { buttonVariants } from '@/core/ui/button'
 import { Faq, type FaqItem } from '@/features/marketing/components/faq'
 import { SectionHeading } from '@/features/marketing/components/section-heading'
+import { UbicacionSection } from '@/features/marketing/components/ubicacion-section'
 import { WhatsAppIcon } from '@/features/marketing/components/brand-icons'
 import { waLink } from '@/core/lib/contact'
 
@@ -75,25 +74,7 @@ const SERVICES = [
     description:
       'La mejor sazón típica de la región: platos tradicionales con ingredientes frescos de la zona, al aire libre.',
   },
-  {
-    href: '/galeria',
-    icon: TreePine,
-    image: IMAGES['loma-bonita'],
-    imageAlt: 'Panorámica de la Finca Loma Bonita y sus palmeras',
-    title: 'Galería',
-    description:
-      'Explora los rincones, paisajes y momentos felices de nuestro pedacito de paraíso.',
-  },
-  {
-    href: '/contacto',
-    icon: Users,
-    image: IMAGES['zonas-de-comunes-de-descanso'],
-    imageAlt: 'Zonas comunes para eventos e integraciones',
-    title: 'Salón de eventos',
-    description:
-      'Bodas, cumpleaños, aniversarios e integraciones corporativas. Nos adaptamos a tus necesidades.',
-  },
-]
+    ]
 
 const PILLARS = [
   {
@@ -110,24 +91,6 @@ const PILLARS = [
     icon: Smile,
     title: 'Divertido',
     description: 'Deporte, recreación acuática y juegos para todos.',
-  },
-]
-
-const DISTANCIAS = [
-  {
-    icon: Car,
-    title: 'Río La Vieja',
-    description: 'A solo 2 minutos: zona inmediata de recreación y balsaje.',
-  },
-  {
-    icon: Route,
-    title: 'Vía Cartago – Alcalá',
-    description: 'Acceso pavimentado y rápido para todo tipo de vehículos.',
-  },
-  {
-    icon: MapPin,
-    title: 'Atracciones del Eje Cafetero',
-    description: 'Parque del Café y PANACA a menos de 45 minutos.',
   },
 ]
 
@@ -333,37 +296,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="ubicacion" className="bg-gradient-to-br from-selva to-piscina py-16 text-white sm:py-20">
-        <div className="container">
-          <SectionHeading
-            tone="light"
-            tag="Ubicación estratégica"
-            title="En el corazón del Eje Cafetero y Piedras de Moler"
-            subtitle="Una ubicación privilegiada en la frontera natural de la zona del Río La Vieja, ideal para planes de balsaje y caminatas ecológicas."
-          />
-          <div className="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-3">
-            {DISTANCIAS.map((item) => (
-              <div key={item.title} className="rounded-xl bg-white/10 p-5 backdrop-blur-sm">
-                <item.icon className="size-6 text-arcilla" aria-hidden="true" />
-                <h3 className="mt-3 font-display font-semibold">{item.title}</h3>
-                <p className="mt-1 text-sm text-white/80">{item.description}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Link
-              href="/contacto"
-              className={cn(
-                buttonVariants({ variant: 'outline', size: 'lg' }),
-                'border-white/50 bg-transparent text-white hover:bg-white/10',
-              )}
-            >
-              <MapPin aria-hidden="true" />
-              Cómo llegar
-            </Link>
-          </div>
-        </div>
-      </section>
+      <UbicacionSection />
 
       <section className="py-16 sm:py-20">
         <div className="container">
