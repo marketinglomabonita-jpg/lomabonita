@@ -10,12 +10,12 @@ import { TikTokIcon } from './brand-icons'
 const SERVICES = [
   'Piscina recreativa',
   'Restaurante campestre',
-  'Cancha de fútbol',
-  'Zona de billares y juegos',
+  'Cancha de minifútbol',
+  'Billar y juegos de mesa',
   'Salón de eventos',
   'Hospedaje campestre',
   'Pasadías',
-  'Balsaje por el Río La Vieja',
+  'Loma Aventura Balsaje',
 ]
 
 const ZONA_CHIPS = ['Piedras de Moler', 'Vía Alcalá · Cartago', 'Eje Cafetero', 'Río La Vieja']
