@@ -342,12 +342,61 @@
     "bytes": 206814,
     "original": "logo finca loma bonita.png"
   },
+  "logo-los-arrieros": {
+    "src": "/img/logo-los-arrieros.webp",
+    "w": 447,
+    "h": 447,
+    "bytes": 23680,
+    "original": "parque los arrieros.jpg"
+  },
+  "logo-panaca": {
+    "src": "/img/logo-panaca.webp",
+    "w": 600,
+    "h": 234,
+    "bytes": 9642,
+    "original": "images.png"
+  },
+  "logo-parque-del-cafe": {
+    "src": "/img/logo-parque-del-cafe.webp",
+    "w": 360,
+    "h": 360,
+    "bytes": 15496,
+    "original": "parque-del-cafe-logo-rojo.webp"
+  },
+  "logo-termales-santa-rosa": {
+    "src": "/img/logo-termales-santa-rosa.webp",
+    "w": 234,
+    "h": 208,
+    "bytes": 11460,
+    "original": "termales-santa-rosa-de-cabal.png"
+  },
+  "logo-ukumari": {
+    "src": "/img/logo-ukumari.webp",
+    "w": 600,
+    "h": 193,
+    "bytes": 13286,
+    "original": "images (1).png"
+  },
   "loma-bonita": {
     "src": "/img/loma-bonita.webp",
     "w": 1500,
     "h": 692,
     "bytes": 229512,
     "original": "Loma bonita.jpeg"
+  },
+  "pasadia-balsaje": {
+    "src": "/img/pasadia-balsaje.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 280426,
+    "original": "balsaje loma bonita.png"
+  },
+  "pasadia-cascadas": {
+    "src": "/img/pasadia-cascadas.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 256062,
+    "original": "pasadia cascadas loma bonita.png"
   },
   "pasadia-con-almuerzo-vertical": {
     "src": "/img/pasadia-con-almuerzo-vertical.webp",
@@ -362,6 +411,20 @@
     "h": 1048,
     "bytes": 102784,
     "original": "pasadia con fiambre (vertical).jpeg"
+  },
+  "pasadia-karts": {
+    "src": "/img/pasadia-karts.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 244976,
+    "original": "pasadia cars loma bonita.png"
+  },
+  "pasadia-relax": {
+    "src": "/img/pasadia-relax.webp",
+    "w": 1448,
+    "h": 1086,
+    "bytes": 143978,
+    "original": "visitantes-pasadia.webp (recorte 4:3)"
   },
   "piscina-hotel-la-lominta": {
     "src": "/img/piscina-hotel-la-lominta.webp",
@@ -502,33 +565,5 @@
     "h": 1086,
     "bytes": 294014,
     "original": "zonas de descanso -vista a la piscina y la montaña.jpeg"
-  },
-  "pasadia-balsaje": {
-    "src": "/img/pasadia-balsaje.webp",
-    "w": 1448,
-    "h": 1086,
-    "bytes": 280426,
-    "original": "balsaje loma bonita.png"
-  },
-  "pasadia-cascadas": {
-    "src": "/img/pasadia-cascadas.webp",
-    "w": 1448,
-    "h": 1086,
-    "bytes": 256062,
-    "original": "pasadia cascadas loma bonita.png"
-  },
-  "pasadia-karts": {
-    "src": "/img/pasadia-karts.webp",
-    "w": 1448,
-    "h": 1086,
-    "bytes": 244976,
-    "original": "pasadia cars loma bonita.png"
-  },
-  "pasadia-relax": {
-    "src": "/img/pasadia-relax.webp",
-    "w": 1448,
-    "h": 1086,
-    "bytes": 143978,
-    "original": "visitantes-pasadia.webp (recorte 4:3)"
   }
 }

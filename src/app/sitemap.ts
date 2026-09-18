@@ -8,6 +8,7 @@ const PUBLIC_ROUTES = [
   '/restaurante',
   '/pasadias',
   '/experiencias-corporativas',
+  '/pasaportes-parques-eje-cafetero',
   '/galeria',
   '/contacto',
   '/legal/privacidad',
