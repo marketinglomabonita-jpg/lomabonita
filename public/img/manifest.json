@@ -337,10 +337,10 @@
   },
   "logo-finca-loma-bonita": {
     "src": "/img/logo-finca-loma-bonita.webp",
-    "w": 722,
-    "h": 854,
-    "bytes": 206814,
-    "original": "logo finca loma bonita.png"
+    "w": 512,
+    "h": 512,
+    "bytes": 72290,
+    "original": "logo finca hotel lomabonita transparente.png"
   },
   "logo-los-arrieros": {
     "src": "/img/logo-los-arrieros.webp",
