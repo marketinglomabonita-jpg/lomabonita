@@ -7,7 +7,7 @@ import { LegalArticle } from '@/features/legal/components/legal-article'
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Términos y Condiciones de Uso',
-  description: `Aviso legal y condiciones de uso del sitio web de la ${BUSINESS.legalName}: naturaleza de la plataforma, precios de ejemplo en fase de validación, propiedad del contenido y ley aplicable.`,
+  description: `Aviso legal y condiciones de uso del sitio web de la ${BUSINESS.legalName}: naturaleza de la plataforma, precios y disponibilidad, propiedad del contenido y ley aplicable.`,
   path: '/legal/terminos',
   image: IMAGES['zonas-de-comunes-de-descanso'],
   imageAlt: 'Zonas comunes de descanso de la Finca Loma Bonita',
@@ -38,12 +38,13 @@ export default function TerminosPage() {
         precio final y la confirmación los otorga el establecimiento por sus canales oficiales.
       </p>
 
-      <h2>3. Precios y disponibilidad en fase de validación</h2>
+      <h2>3. Precios y disponibilidad</h2>
       <p>
-        Esta plataforma se encuentra en fase de validación con el propietario: los precios,
-        tarifas, carta y disponibilidad mostrados son <strong>valores de ejemplo</strong> sujetos
-        a cambio. Los precios y la disponibilidad reales se confirman siempre por los canales
-        oficiales del establecimiento (teléfono y WhatsApp {formatPhone(BUSINESS.phones[0])}).
+        Los precios, tarifas y carta publicados son los vigentes al momento de su publicación y
+        están sujetos a cambio y a disponibilidad. Toda reserva queda confirmada únicamente por los
+        canales oficiales del establecimiento (teléfono y WhatsApp{' '}
+        {formatPhone(BUSINESS.phones[0])}), donde también se confirma el valor final de tu plan
+        según fechas, número de personas y servicios incluidos.
       </p>
 
       <h2>4. Condiciones de uso</h2>
@@ -71,8 +72,8 @@ export default function TerminosPage() {
       <h2>6. Limitación de responsabilidad</h2>
       <p>
         La información del sitio se publica de buena fe con fines informativos y de solicitud de
-        servicios. En la fase de validación descrita en el numeral 3, los valores mostrados son
-        referenciales y no constituyen oferta mercantil vinculante. El establecimiento no responde
+        servicios. Los valores publicados son informativos y no constituyen oferta mercantil
+        vinculante hasta su confirmación por los canales oficiales. El establecimiento no responde
         por daños derivados del uso indebido del sitio ni de interrupciones ajenas a su control.
       </p>
 
@@ -85,7 +86,7 @@ export default function TerminosPage() {
       <h2>8. Modificaciones</h2>
       <p>
         El establecimiento puede actualizar estos términos en cualquier momento; la versión
-        publicada en esta página es la vigente. Última actualización: 11 de septiembre de 2026.
+        publicada en esta página es la vigente. Última actualización: 17 de septiembre de 2026.
       </p>
 
       <p>

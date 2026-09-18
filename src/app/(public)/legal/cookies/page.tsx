@@ -80,7 +80,7 @@ export default function PoliticaCookiesPage() {
         <a href="/legal/datos-personales">Política de Tratamiento de Datos Personales</a>.
       </p>
 
-      <p>Última actualización: 11 de septiembre de 2026.</p>
+      <p>Última actualización: 17 de septiembre de 2026.</p>
     </LegalArticle>
   )
 }

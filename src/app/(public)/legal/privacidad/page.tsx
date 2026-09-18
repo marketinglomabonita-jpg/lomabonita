@@ -100,7 +100,7 @@ export default function PoliticaPrivacidadPage() {
       </p>
 
       <p>
-        Última actualización: 11 de septiembre de 2026 · Para consultarla en cualquier momento,
+        Última actualización: 17 de septiembre de 2026 · Para consultarla en cualquier momento,
         encuentra este documento en el pie de página del sitio.
       </p>
     </LegalArticle>
