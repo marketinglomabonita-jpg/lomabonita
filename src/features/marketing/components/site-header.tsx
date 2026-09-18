@@ -57,7 +57,7 @@ export function SiteHeader() {
               alt={`Logo de ${BUSINESS.legalName}`}
               width={56}
               height={56}
-              sizes="40px"
+              sizes="56px"
               className="h-14 w-auto"
             />
             <span className="flex min-w-0 flex-col leading-tight">
