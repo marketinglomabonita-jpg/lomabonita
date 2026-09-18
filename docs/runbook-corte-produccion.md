@@ -6,7 +6,17 @@
 > `www.lomabonitahotel.com` sigue sirviendo el sitio estático (proyecto Vercel `lomabonita`,
 > rama `main`).
 
-**Estado del corte**: ⏸ pendiente de aprobación del propietario.
+**Estado del corte**: ✅ EJECUTADO el 2026-09-17 por orden del propietario.
+
+> Qué se hizo: `NEXT_PUBLIC_SITE_MODE=production` y `NEXT_PUBLIC_SITE_URL=https://www.lomabonitahotel.com`
+> en el proyecto `lomabonita-demo`; merge de `plataforma-v2` a `main`; deploy de producción desde
+> `main`; dominios `lomabonitahotel.com` (308 → www) y `www.lomabonitahotel.com` trasladados del
+> proyecto `lomabonita` al `lomabonita-demo`.
+>
+> **Punto de retorno**: el sitio estático anterior sigue en el commit `4bb306e` y en el proyecto
+> Vercel `lomabonita`; revertir = devolver ambos dominios a ese proyecto.
+>
+> Pendiente del Paso 6: rotar las credenciales compartidas durante la construcción.
 
 ---
 
