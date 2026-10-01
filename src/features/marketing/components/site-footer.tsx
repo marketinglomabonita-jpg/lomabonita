@@ -22,6 +22,7 @@ const ZONA_CHIPS = ['Piedras de Moler', 'Vía Alcalá · Cartago', 'Eje Cafetero
 
 const LEGAL_LINKS = [
   { href: '/legal/terminos', label: 'Términos y Condiciones' },
+  { href: '/legal/cancelaciones', label: 'Cancelaciones y Reembolsos' },
   { href: '/legal/privacidad', label: 'Política de Privacidad' },
   { href: '/legal/datos-personales', label: 'Datos Personales' },
   { href: '/legal/cookies', label: 'Cookies' },

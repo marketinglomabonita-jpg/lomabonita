@@ -14,6 +14,7 @@ const PUBLIC_ROUTES = [
   '/legal/privacidad',
   '/legal/datos-personales',
   '/legal/terminos',
+  '/legal/cancelaciones',
   '/legal/cookies',
 ]
 
