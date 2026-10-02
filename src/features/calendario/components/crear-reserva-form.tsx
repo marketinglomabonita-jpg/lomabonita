@@ -90,6 +90,7 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
         ? {
             monto: formData.get('abono_monto'),
             medio: formData.get('abono_medio'),
+            comprobante: formData.get('abono_comprobante'),
           }
         : undefined
 
