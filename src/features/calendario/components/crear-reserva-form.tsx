@@ -82,8 +82,9 @@ function sumaExtrasDe(estado: Record<ExtraSlug, ExtraEnForma>): number {
 
 /**
  * Formulario de reserva de alojamiento: vive dentro del popup del día
- * (R3.1a) o embebido en la página del día. El selector solo ofrece
- * habitaciones LIBRES para el rango elegido; si aun así alguien la ocupa a
+ * (R3.1a) o embebido en la página del día. El selector de habitación es el
+ * PRIMER campo (las fechas quedan debajo) y solo ofrece habitaciones
+ * LIBRES para el rango elegido; si aun así alguien la ocupa a
  * la vez, la restricción de exclusión de la BD rechaza el insert y la action
  * traduce el error 23P01 al mensaje visible. El valor total se PRE-RELLENA en
  * vivo con la tarifa (personas × PERSON_RATE × noches) MÁS los extras
@@ -257,6 +258,40 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
         </div>
       )}
 
+      {/* Habitación primero: la lista es la de libres para el rango de fechas
+          que se elige más abajo; cambiar llegada/salida la reconsulta. */}
+      <div>
+        <label htmlFor="reserva-habitacion" className="text-sm font-medium">
+          Habitación {recargando ? '(actualizando…)' : ''}
+        </label>
+        <select
+          id="reserva-habitacion"
+          name="room_id"
+          required
+          disabled={recargando || !fechasValidas}
+          className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
+        >
+          {!fechasValidas ? (
+            <option value="">Corrige las fechas</option>
+          ) : libres.length === 0 ? (
+            <option value="">Sin habitaciones libres en esas fechas</option>
+          ) : (
+            libres.map((h) => (
+              <option key={h.id} value={h.id}>
+                Hab. {h.numero} · {h.nombre}
+                {h.capacidad ? ` (hasta ${h.capacidad} personas)` : ''}
+              </option>
+            ))
+          )}
+        </select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Disponibles para las fechas de abajo ·{' '}
+          {fechasValidas
+            ? `${libres.length} habitación(es) libre(s) del ${llegada} al ${salida}`
+            : 'la salida debe ser posterior a la llegada'}
+        </p>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="reserva-llegada" className="text-sm font-medium">
@@ -401,32 +436,6 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
             marcados; ajusta si hay menores de {FREE_CHILD_AGE} años (gratis)
           </p>
         </div>
-
-        <div>
-          <label htmlFor="reserva-habitacion" className="text-sm font-medium">
-            Habitación {recargando ? '(actualizando…)' : ''}
-          </label>
-          <select
-            id="reserva-habitacion"
-            name="room_id"
-            required
-            disabled={recargando || !fechasValidas}
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
-          >
-            {!fechasValidas ? (
-              <option value="">Corrige las fechas</option>
-            ) : libres.length === 0 ? (
-              <option value="">Sin habitaciones libres en esas fechas</option>
-            ) : (
-              libres.map((h) => (
-                <option key={h.id} value={h.id}>
-                  Hab. {h.numero} · {h.nombre}
-                  {h.capacidad ? ` (hasta ${h.capacidad} personas)` : ''}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
       </div>
 
       {/* Experiencias adicionales (R4.A): Relax va incluido; Balsaje/Cascadas
@@ -519,12 +528,7 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
 
       <AbonoFields valorTotal={valorTotal} />
 
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">
-          {fechasValidas
-            ? `${libres.length} habitación(es) libre(s) del ${llegada} al ${salida}`
-            : 'La salida debe ser posterior a la llegada'}
-        </p>
+      <div className="flex items-center justify-end">
         <Button type="submit" disabled={ocupado || recargando || !fechasValidas}>
           Crear reserva
         </Button>

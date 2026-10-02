@@ -1,11 +1,31 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { createClient } from '@/core/adapters/supabase/server'
+import { PanelNav } from '@/features/admin/components/panel-nav'
+import { InstalarPwa } from '@/features/admin/components/instalar-pwa'
 
 export const metadata: Metadata = {
   title: 'Panel · Loma Bonita',
   robots: 'noindex',
+  // PWA del panel (solo /admin): el manifest y el SW apuntan a /admin, no al
+  // sitio público. iOS no usa el manifest: se cubre con appleWebApp + apple-icon.
+  manifest: '/panel.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'LB Panel',
+    statusBarStyle: 'default',
+  },
+  icons: {
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#1f5138',
 }
 
 /**
@@ -35,32 +55,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="border-b bg-card">
-        <div className="container flex h-14 items-center justify-between">
-          <span className="font-display font-semibold text-primary">Loma Bonita · Panel</span>
-          <span className="text-xs text-muted-foreground">{user.email}</span>
-        </div>
-      </header>
-      <div className="container grid gap-6 py-6 md:grid-cols-[200px_1fr]">
-        <nav className="flex flex-col gap-1 text-sm">
-          {SECCIONES.map((s) => (
-            <Link
-              key={s.href}
-              href={s.activa ? s.href : '#'}
-              aria-disabled={!s.activa}
-              className={
-                s.activa
-                  ? 'rounded-md px-3 py-2 hover:bg-muted'
-                  : 'pointer-events-none rounded-md px-3 py-2 text-muted-foreground/60'
-              }
-            >
-              {s.label}
-              {!s.activa && <span className="ml-1 text-[10px]">· próximamente</span>}
-            </Link>
-          ))}
-        </nav>
-        <main>{children}</main>
-      </div>
+      {/* Registro del SW del panel + ayuda discreta de instalación (solo aquí) */}
+      <InstalarPwa />
+      <PanelNav secciones={SECCIONES} email={user.email ?? ''}>
+        {children}
+      </PanelNav>
     </div>
   )
 }
