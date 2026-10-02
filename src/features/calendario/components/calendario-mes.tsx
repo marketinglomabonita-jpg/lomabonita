@@ -114,7 +114,7 @@ export function CalendarioMes({ mes, dias, hoy }: { mes: string; dias: DiaOcupac
           return (
             <Link
               key={dia.fecha}
-              href={`/admin/calendario?mes=${mes}&dia=${dia.fecha}`}
+              href={`/admin/calendario/dia/${dia.fecha}`}
               aria-label={`Día ${dia.fecha}: ${dia.roomsOcupadas} de ${dia.totalRooms} habitaciones ocupadas, ${dia.pasadiaPersonas} de ${dia.cupo} personas de pasadía`}
               className={`flex min-h-[52px] min-w-0 flex-col justify-between overflow-hidden rounded-md border p-1 sm:min-h-[72px] ${CLASES_PRESION[presionDe(dia)]} ${
                 esHoy ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''
