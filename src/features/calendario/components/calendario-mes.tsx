@@ -58,15 +58,20 @@ const CLASES_PRESION: Record<Presion, string> = {
 }
 
 /**
- * Presión del día: la MAYOR de las dos proporciones (hospedaje y pasadía).
- * verde < 50% · ámbar 50-89% · rojo ≥ 90%.
+ * Semáforo del día:
+ *  - verde (baja): el día está libre — 0 habitaciones ocupadas y 0 pasadías.
+ *  - rojo (alta): está a tope — habitaciones llenas O cupo de pasadías lleno.
+ *  - naranja (media): hay algo reservado (alojamiento o pasadías) pero no está lleno.
  */
 function presionDe(dia: DiaOcupacion): Presion {
-  const pRooms = dia.totalRooms > 0 ? dia.roomsOcupadas / dia.totalRooms : 0
-  const pPasadia = dia.cupo > 0 ? dia.pasadiaPersonas / dia.cupo : 0
-  const p = Math.max(pRooms, pPasadia)
-  if (p >= 0.9) return 'alta'
-  return p >= 0.5 ? 'media' : 'baja'
+  const hayActividad = dia.roomsOcupadas > 0 || dia.pasadiaPersonas > 0
+  if (!hayActividad) return 'baja'
+
+  const roomsLleno = dia.totalRooms > 0 && dia.roomsOcupadas >= dia.totalRooms
+  const pasadiaLleno = dia.cupo > 0 && dia.pasadiaPersonas >= dia.cupo
+  if (roomsLleno || pasadiaLleno) return 'alta'
+
+  return 'media'
 }
 
 export function CalendarioMes({ mes, dias, hoy }: { mes: string; dias: DiaOcupacion[]; hoy: string }) {
@@ -144,15 +149,15 @@ export function CalendarioMes({ mes, dias, hoy }: { mes: string; dias: DiaOcupac
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm border border-green-300 bg-green-100 dark:border-green-900 dark:bg-green-950" />
-          Libre (&lt;50%)
+          Libre
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm border border-amber-300 bg-amber-100 dark:border-amber-900 dark:bg-amber-950" />
-          Media (50–89%)
+          Con reservas
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm border border-red-300 bg-red-200 dark:border-red-900 dark:bg-red-950" />
-          Lleno o casi (≥90%)
+          Lleno
         </span>
         <span>🛏 habitaciones · 🎟 pasadía</span>
       </div>
