@@ -7,9 +7,10 @@ import { InstalarPwa } from '@/features/admin/components/instalar-pwa'
 export const metadata: Metadata = {
   title: 'Panel · Loma Bonita',
   robots: 'noindex',
-  // PWA del panel (solo /admin): el manifest y el SW apuntan a /admin, no al
-  // sitio público. iOS no usa el manifest: se cubre con appleWebApp + apple-icon.
-  manifest: '/panel.webmanifest',
+  // El <link rel="manifest"> se renderiza manualmente abajo con
+  // crossOrigin="use-credentials" para que el fetch del manifest LLEVE la cookie
+  // de acceso (así el manifest puede personalizar el start_url al slug secreto).
+  // Por eso NO se declara `manifest` aquí (emitiría un link sin credenciales).
   appleWebApp: {
     capable: true,
     title: 'LB Panel',
@@ -55,6 +56,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-muted/40">
+      {/* Manifest con credenciales: el fetch lleva la cookie de acceso, así el
+          manifest puede fijar el start_url a la dirección secreta. React 19
+          sube este <link> al <head>. */}
+      <link rel="manifest" href="/panel.webmanifest" crossOrigin="use-credentials" />
       {/* Registro del SW del panel + ayuda discreta de instalación (solo aquí) */}
       <InstalarPwa />
       <PanelNav secciones={SECCIONES} email={user.email ?? ''}>
