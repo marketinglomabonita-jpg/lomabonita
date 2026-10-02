@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { z } from 'zod'
-import { formatCop } from '@/core/lib/money'
 import { Badge } from '@/core/ui/badge'
 import {
   diaSiguiente,
@@ -13,6 +12,8 @@ import {
 } from '@/features/calendario/api/dia'
 import { CrearPasadiaForm } from '@/features/calendario/components/crear-pasadia-form'
 import { CrearReservaForm } from '@/features/calendario/components/crear-reserva-form'
+import { GestionPasadia } from '@/features/calendario/components/gestion-pasadia'
+import { GestionReserva } from '@/features/calendario/components/gestion-reserva'
 
 /** [fecha] del dynamic segment: se await-ea y se valida; si no, 404. */
 const fechaParamSchema = z.string().refine(esFechaISOValida, 'Fecha inválida')
@@ -77,25 +78,54 @@ export default async function DiaCalendarioPage({
         {detalle.habitaciones.length > 0 && (
           <div className="grid gap-2 sm:grid-cols-2">
             {detalle.habitaciones.map((h) => (
-              <div
-                key={h.id}
-                className="flex items-center justify-between gap-2 rounded-lg border bg-card p-3"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
-                    Hab. {h.numero} · {h.nombre}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {h.capacidad ? `Hasta ${h.capacidad} personas` : 'Capacidad sin definir'}
-                  </p>
+              <div key={h.id} className="rounded-lg border bg-card p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      Hab. {h.numero} · {h.nombre}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {h.capacidad ? `Hasta ${h.capacidad} personas` : 'Capacidad sin definir'}
+                    </p>
+                  </div>
+                  {h.reserva ? (
+                    <Badge className="shrink-0 bg-red-100 text-red-800">Ocupada</Badge>
+                  ) : (
+                    <Badge className="shrink-0 bg-green-100 text-green-800">Libre</Badge>
+                  )}
                 </div>
-                {h.ocupadaPor ? (
-                  <Badge className="shrink-0 bg-red-100 text-red-800">
-                    Ocupada por {h.ocupadaPor}
-                  </Badge>
-                ) : (
-                  <Badge className="shrink-0 bg-green-100 text-green-800">Libre</Badge>
+
+                {/* Gestión de la reserva que ocupa la habitación (R5): saldo,
+                    abonos, comprobantes, editar, cancelar, eliminar. */}
+                {h.reserva && (
+                  <div className="mt-3 border-t pt-3">
+                    <GestionReserva
+                      reserva={h.reserva}
+                      habitacionActual={{ id: h.id, numero: h.numero, nombre: h.nombre }}
+                      fecha={fechaISO}
+                    />
+                  </div>
                 )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Reservas vivas cuya habitación ya no existe (fue eliminada o
+            desactivada): no cuelgan de ninguna tarjeta, pero se gestionan igual
+            — editarlas permite reasignarlas a una habitación activa. */}
+        {detalle.reservasSinHabitacion.length > 0 && (
+          <div className="space-y-2 rounded-lg border border-amber-300 bg-amber-50/50 p-3 dark:border-amber-900 dark:bg-amber-950/30">
+            <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              Reservas sin habitación activa
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Su habitación fue eliminada o desactivada con la reserva viva. Edítalas para
+              reasignarlas a una habitación libre.
+            </p>
+            {detalle.reservasSinHabitacion.map((r) => (
+              <div key={r.id} className="rounded-lg border bg-card p-3">
+                <GestionReserva reserva={r} habitacionActual={null} fecha={fechaISO} />
               </div>
             ))}
           </div>
@@ -125,27 +155,12 @@ export default async function DiaCalendarioPage({
             <p className="text-sm text-muted-foreground">Sin pasadías emitidas este día</p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-lg border bg-card">
-            <table className="w-full text-sm">
-              <thead className="border-b bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Código</th>
-                  <th className="px-4 py-3 font-medium">Nombre</th>
-                  <th className="px-4 py-3 font-medium">Personas</th>
-                  <th className="px-4 py-3 text-right font-medium">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {detalle.pasadias.map((t) => (
-                  <tr key={t.id}>
-                    <td className="px-4 py-3 font-medium tabular-nums">{t.codigo}</td>
-                    <td className="px-4 py-3">{t.nombre}</td>
-                    <td className="px-4 py-3 tabular-nums">{t.personas}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatCop(t.total)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {detalle.pasadias.map((t) => (
+              <div key={t.id} className="rounded-lg border bg-card p-3">
+                <GestionPasadia pasadia={t} />
+              </div>
+            ))}
           </div>
         )}
 

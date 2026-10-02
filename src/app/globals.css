@@ -111,4 +111,20 @@
   .legal-prose strong {
     @apply font-semibold text-foreground;
   }
+
+  /* Campos numéricos del panel sin flechitas: el valor se escribe a mano y ni
+     un toque ni la rueda lo cambian. Chrome/Safari esconden los spin buttons;
+     Firefox ignora su appearance. (La rueda se neutraliza además con
+     onWheel → blur en el propio input, porque el CSS no puede con ella).
+     Es clase y no regla global de input[type=number] para no tocar los
+     numéricos del sitio público. */
+  .no-spin::-webkit-outer-spin-button,
+  .no-spin::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .no-spin {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
 }
