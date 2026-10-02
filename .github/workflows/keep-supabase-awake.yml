@@ -1,0 +1,25 @@
+name: keep-supabase-awake
+
+# Latido diario: toca la base de datos para que el plan gratuito de Supabase
+# no la pause por 7 dias de inactividad. Gratis (GitHub Actions).
+# La URL y la llave anon son publicas por diseno (van en el sitio en vivo y
+# estan protegidas por RLS); por eso pueden ir aqui sin secretos.
+on:
+  schedule:
+    - cron: '23 13 * * *' # diario ~08:23 Colombia (13:23 UTC)
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping a la API REST de Supabase
+        env:
+          SUPABASE_URL: https://xedfjhigbrttavtwvgxe.supabase.co
+          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlZGZqaGlnYnJ0dGF2dHd2Z3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTYyODIsImV4cCI6MjEwNDYzMjI4Mn0.ptLWu65PHsehFkTIKHDWmWOltDdtpvqHgwx7oZRf5CY
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/room_types?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY")
+          echo "Supabase respondio HTTP $code"
+          test "$code" = "200"
