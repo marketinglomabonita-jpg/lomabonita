@@ -5,7 +5,36 @@ import { CUPO_DEFAULT_PASADIA } from './queries'
  * Detalle de un día del calendario (R3): estado de las 10 habitaciones,
  * pasadías del día y cupo restante. Los no-cruce y el cupo los garantiza la
  * BD (restricción de exclusión + trigger); aquí solo se leen y se muestran.
+ * Desde la gestión de reservas (R5) cada reserva/pasadía viaja completa:
+ * contacto, fechas, valor, abonado, saldo y comprobantes, para que la UI
+ * de gestión (editar/cancelar/abonar) no tenga que volver a consultar.
  */
+
+/**
+ * Reserva activa (solicitada/confirmada) que cubre el día consultado, con
+ * todo lo que su gestión necesita: contacto, rango, dinero y comprobantes.
+ */
+export type ReservaDelDia = {
+  id: string
+  codigo: string | null
+  nombre: string
+  telefono: string | null
+  email: string | null
+  estado: 'solicitada' | 'confirmada'
+  /** Habitación reservada; null si la habitación fue eliminada de la BD. */
+  room_id: string | null
+  /** Llegada y salida en YYYY-MM-DD, partidas del daterange [llegada, salida). */
+  llegada: string | null
+  salida: string | null
+  /** Valor acordado; null mientras siga "por definir". */
+  valor_total: number | null
+  /** Σ payments.monto de la reserva (0 si no tiene abonos). */
+  abonado: number
+  /** valor_total − abonado; null mientras el valor siga "por definir". */
+  saldo: number | null
+  /** Rutas de comprobantes subidos (la URL firmada la pide urlComprobante). */
+  comprobantes: string[]
+}
 
 /** Habitación con su estado de ocupación en un día concreto. */
 export type HabitacionDelDia = {
@@ -15,6 +44,13 @@ export type HabitacionDelDia = {
   capacidad: number | null
   /** Nombre del huésped de la reserva activa que cubre el día, si la hay. */
   ocupadaPor: string | null
+  /**
+   * La reserva activa que ocupa la habitación ese día (gestión R5): la
+   * restricción de exclusión garantiza que sea a lo sumo UNA por habitación y
+   * rango; null si está libre. `ocupadaPor` es `reserva?.nombre` y se mantiene
+   * por compatibilidad con quienes ya lo leían.
+   */
+  reserva: ReservaDelDia | null
 }
 
 /** Habitación candidata para un rango: activa y sin reserva ni bloqueo que solape. */
@@ -55,11 +91,27 @@ export type PasadiaDelDia = {
   total: number
   /** Desglose por plan cuando el grupo combinó planes ([] en tickets viejos). */
   lineas: LineaPasadia[]
+  telefono: string | null
+  email: string | null
+  /** 'emitido' o 'usado': los cancelados no llegan aquí (el filtro los excluye). */
+  estado: 'emitido' | 'usado'
+  /** Σ payments.monto del ticket (0 si no tiene abonos). */
+  abonado: number
+  /** total − abonado; null si el ticket no tiene total definido. */
+  saldo: number | null
+  /** Rutas de comprobantes subidos (la URL firmada la pide urlComprobante). */
+  comprobantes: string[]
 }
 
 export type DetalleDia = {
   fecha: string
   habitaciones: HabitacionDelDia[]
+  /**
+   * Reservas activas del día que NO cuelgan de ninguna habitación listada
+   * (habitación eliminada o desactivada con la reserva viva): no aparecen en
+   * `habitaciones`, pero siguen existiendo y se deben poder gestionar.
+   */
+  reservasSinHabitacion: ReservaDelDia[]
   pasadias: PasadiaDelDia[]
   /** Personas de pasadía ya registradas ese día (tickets no cancelados). */
   pasadiaPersonas: number
@@ -103,6 +155,50 @@ export function fechaLegible(fecha: string): string {
   const [anio, mes, dia] = fecha.split('-').map(Number)
   const diaSemana = new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay()
   return `${DIAS_SEMANA_ES[diaSemana]} ${dia} de ${MESES_ES[mes - 1]} de ${anio}`
+}
+
+/** Redondea a 2 decimales: los numeric llegan como texto y suman ruido de FP. */
+function redondear2(valor: number): number {
+  return Math.round(valor * 100) / 100
+}
+
+/**
+ * Parte el texto de un daterange "[llegada,salida)" en sus dos fechas. Si el
+ * texto no tuviera el formato acotado que escriben todas las vías de creación,
+ * devuelve nulls en vez de adivinar (la UI decide cómo mostrarlo).
+ */
+function partirDuring(during: string): { llegada: string | null; salida: string | null } {
+  const partes = /^\[(\d{4}-\d{2}-\d{2}),(\d{4}-\d{2}-\d{2})\)$/.exec(during)
+  return partes ? { llegada: partes[1], salida: partes[2] } : { llegada: null, salida: null }
+}
+
+/** Abonos y comprobantes agregados por destino (una sola consulta a payments). */
+async function abonosPorDestino(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  columna: 'reservation_id' | 'ticket_id',
+  ids: string[],
+): Promise<Map<string, { abonado: number; comprobantes: string[] }>> {
+  if (ids.length === 0) return new Map()
+
+  const { data, error } = await supabase
+    .from('payments')
+    .select(`${columna}, monto, comprobante_path`)
+    .in(columna, ids)
+
+  if (error) throw new Error(`Error al leer los abonos: ${error.message}`)
+
+  const porDestino = new Map<string, { abonado: number; comprobantes: string[] }>()
+  for (const pago of (data ?? []) as Array<Record<string, unknown>>) {
+    const destino = pago[columna]
+    if (typeof destino !== 'string') continue
+    const actual = porDestino.get(destino) ?? { abonado: 0, comprobantes: [] }
+    actual.abonado = redondear2(actual.abonado + Number(pago.monto ?? 0))
+    if (typeof pago.comprobante_path === 'string' && pago.comprobante_path !== '') {
+      actual.comprobantes.push(pago.comprobante_path)
+    }
+    porDestino.set(destino, actual)
+  }
+  return porDestino
 }
 
 /**
@@ -170,9 +266,10 @@ export async function getPlanesPasadia(): Promise<PlanPasadia[]> {
 }
 
 /**
- * Estado completo de un día: las 10 habitaciones con quién las ocupa,
- * las pasadías emitidas y el cupo restante (RPC pública de la BD).
- * Lee con el cliente RLS del staff (createClient), nunca service-role.
+ * Estado completo de un día: las 10 habitaciones con quién las ocupa (y la
+ * reserva completa, para gestionarla), las pasadías emitidas con su saldo y
+ * el cupo restante (RPC pública de la BD). Lee con el cliente RLS del staff
+ * (createClient), nunca service-role.
  */
 export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
   const supabase = await createClient()
@@ -187,12 +284,12 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
       .order('numero'),
     supabase
       .from('reservations')
-      .select('room_id, nombre')
+      .select('id, codigo, room_id, nombre, telefono, email, estado, during, valor_total')
       .in('estado', ['solicitada', 'confirmada'])
       .overlaps('during', `[${fecha},${diaSiguiente(fecha)})`),
     supabase
       .from('tickets')
-      .select('id, codigo, nombre, personas, total_muestra, lineas')
+      .select('id, codigo, nombre, telefono, email, estado, personas, total_muestra, lineas')
       .eq('fecha', fecha)
       .neq('estado', 'cancelado')
       .order('created_at'),
@@ -200,43 +297,103 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
   ])
 
   if (rooms.error) throw new Error(`Error al listar habitaciones: ${rooms.error.message}`)
-  if (reservas.error) throw new Error(`Error al listar reservas: ${reservas.error.message}`)
-  if (tickets.error) throw new Error(`Error al listar tickets: ${tickets.error.message}`)
+  if (reservas.error) throw new Error(`Error al buscar reservas: ${reservas.error.message}`)
+  if (tickets.error) throw new Error(`Error al leer las pasadías: ${tickets.error.message}`)
   if (cupo.error) throw new Error(`Error al consultar el cupo: ${cupo.error.message}`)
 
-  // room_id → nombre(s) de quien(es) ocupan ese día.
-  const ocupadaPor = new Map<string, string[]>()
-  for (const r of (reservas.data ?? []) as { room_id: string | null; nombre: string }[]) {
-    if (!r.room_id) continue
-    ocupadaPor.set(r.room_id, [...(ocupadaPor.get(r.room_id) ?? []), r.nombre])
-  }
-
-  const pasadias = ((tickets.data ?? []) as Array<{
+  const crudasReservas = (reservas.data ?? []) as Array<{
+    id: string
+    codigo: string | null
+    room_id: string | null
+    nombre: string
+    telefono: string | null
+    email: string | null
+    estado: string
+    during: string
+    valor_total: number | string | null
+  }>
+  const crudasTickets = (tickets.data ?? []) as Array<{
     id: string
     codigo: string
     nombre: string
+    telefono: string | null
+    email: string | null
+    estado: string
     personas: number
-    total_muestra: number | null
+    total_muestra: number | string | null
     lineas: unknown
-  }>).map((t) => ({
-    id: t.id,
-    codigo: t.codigo,
-    nombre: t.nombre,
-    personas: t.personas,
-    total: Number(t.total_muestra ?? 0),
-    // lineas llega como jsonb (unknown): se normaliza campo por campo para no
-    // propagar un shape inesperado a la UI (los tickets viejos traen []).
-    lineas: (Array.isArray(t.lineas) ? (t.lineas as unknown[]) : []).map((cruda) => {
-      const l = (cruda ?? {}) as Partial<LineaPasadia>
-      return {
-        plan: String(l.plan ?? ''),
-        nombre: String(l.nombre ?? ''),
-        personas: Number(l.personas ?? 0),
-        precio_persona: Number(l.precio_persona ?? 0),
-        subtotal: Number(l.subtotal ?? 0),
-      }
-    }),
-  }))
+  }>
+
+  // Abonos y comprobantes de todos los destinos del día, agrupados por id.
+  const [abonosReservas, abonosTickets] = await Promise.all([
+    abonosPorDestino(supabase, 'reservation_id', crudasReservas.map((r) => r.id)),
+    abonosPorDestino(supabase, 'ticket_id', crudasTickets.map((t) => t.id)),
+  ])
+
+  const aReservaDelDia = (r: (typeof crudasReservas)[number]): ReservaDelDia => {
+    const { llegada, salida } = partirDuring(r.during)
+    const valorTotal = r.valor_total === null ? null : redondear2(Number(r.valor_total))
+    const abonos = abonosReservas.get(r.id) ?? { abonado: 0, comprobantes: [] }
+    return {
+      id: r.id,
+      codigo: r.codigo,
+      nombre: r.nombre,
+      telefono: r.telefono,
+      email: r.email,
+      // El filtro de la consulta solo deja pasar estos dos estados.
+      estado: r.estado === 'solicitada' ? 'solicitada' : 'confirmada',
+      room_id: r.room_id,
+      llegada,
+      salida,
+      valor_total: valorTotal,
+      abonado: abonos.abonado,
+      saldo: valorTotal === null ? null : redondear2(valorTotal - abonos.abonado),
+      comprobantes: abonos.comprobantes,
+    }
+  }
+
+  const reservasDelDia = crudasReservas.map(aReservaDelDia)
+
+  // room_id → reserva activa: la exclusión garantiza una sola por habitación.
+  const reservaPorRoom = new Map<string, ReservaDelDia>()
+  for (const r of reservasDelDia) {
+    if (r.room_id) reservaPorRoom.set(r.room_id, r)
+  }
+
+  const pasadias = crudasTickets.map((t) => {
+    const abonos = abonosTickets.get(t.id) ?? { abonado: 0, comprobantes: [] }
+    return {
+      id: t.id,
+      codigo: t.codigo,
+      nombre: t.nombre,
+      telefono: t.telefono,
+      email: t.email,
+      // El filtro de la consulta ya excluyó 'cancelado'.
+      estado: t.estado === 'usado' ? ('usado' as const) : ('emitido' as const),
+      personas: t.personas,
+      total: Number(t.total_muestra ?? 0),
+      // lineas llega como jsonb (unknown): se normaliza campo por campo para no
+      // propagar un shape inesperado a la UI (los tickets viejos traen []).
+      lineas: (Array.isArray(t.lineas) ? (t.lineas as unknown[]) : []).map((cruda) => {
+        const l = (cruda ?? {}) as Partial<LineaPasadia>
+        return {
+          plan: String(l.plan ?? ''),
+          nombre: String(l.nombre ?? ''),
+          personas: Number(l.personas ?? 0),
+          precio_persona: Number(l.precio_persona ?? 0),
+          subtotal: Number(l.subtotal ?? 0),
+        }
+      }),
+      abonado: abonos.abonado,
+      saldo:
+        t.total_muestra === null
+          ? null
+          : redondear2(Number(t.total_muestra) - abonos.abonado),
+      comprobantes: abonos.comprobantes,
+    }
+  })
+
+  const idsRoomsActivas = new Set(((rooms.data ?? []) as Array<{ id: string }>).map((h) => h.id))
 
   return {
     fecha,
@@ -245,13 +402,20 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
       numero: number
       nombre: string
       capacidad: number | null
-    }>).map((h) => ({
-      id: h.id,
-      numero: h.numero,
-      nombre: h.nombre,
-      capacidad: h.capacidad,
-      ocupadaPor: ocupadaPor.get(h.id)?.[0] ?? null,
-    })),
+    }>).map((h) => {
+      const reserva = reservaPorRoom.get(h.id) ?? null
+      return {
+        id: h.id,
+        numero: h.numero,
+        nombre: h.nombre,
+        capacidad: h.capacidad,
+        ocupadaPor: reserva?.nombre ?? null,
+        reserva,
+      }
+    }),
+    reservasSinHabitacion: reservasDelDia.filter(
+      (r) => !r.room_id || !idsRoomsActivas.has(r.room_id),
+    ),
     pasadias,
     pasadiaPersonas: pasadias.reduce((suma, t) => suma + t.personas, 0),
     // Fallback defensivo al default documentado si la RPC no devolviera número.
