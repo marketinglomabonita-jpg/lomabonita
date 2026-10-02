@@ -4,7 +4,12 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/core/adapters/supabase/server'
 import { createAdminClient } from '@/core/adapters/supabase/admin'
-import { esFechaISOValida, habitacionesLibres, type HabitacionLibre } from './dia'
+import {
+  esFechaISOValida,
+  habitacionesLibres,
+  type HabitacionLibre,
+  type LineaPasadia,
+} from './dia'
 
 /** Comprobante de pago: imagen o PDF, máximo 5 MB. Guardado en bucket privado. */
 const COMPROBANTE_TIPOS = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
@@ -128,18 +133,34 @@ const crearReservaSchema = z
     path: ['salida'],
   })
 
-const crearPasadiaSchema = z.object({
-  fecha: fechaISO,
-  plan: z.string().trim().min(1, 'Elige un plan de pasadía'),
+/** Una línea del grupo combinado (R4): un plan y cuántas personas van en él. */
+const lineaPasadiaSchema = z.object({
+  plan: z.string().trim().min(1, 'Elige un plan de pasadía en cada línea'),
   personas: z.coerce
     .number({ invalid_type_error: 'Las personas deben ser un número' })
     .int('Las personas deben ser un número entero')
-    .min(1, 'Debe haber al menos 1 persona')
+    .min(1, 'Cada línea necesita al menos 1 persona')
     .max(200, 'Cantidad de personas fuera de rango'),
-  nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(120),
-  telefono: z.string().trim().min(1, 'El teléfono es obligatorio').max(40),
-  abono: abonoSchema.optional(),
 })
+
+const crearPasadiaSchema = z
+  .object({
+    fecha: fechaISO,
+    // Pasadías combinadas: el grupo puede mezclar planes (R4). Aquí SOLO se
+    // validan plan y personas; los subtotales y el total los recalcula el
+    // SERVIDOR con precios de pass_products — el dinero del cliente se ignora.
+    lineas: z
+      .array(lineaPasadiaSchema)
+      .min(1, 'Agrega al menos un plan al grupo')
+      .max(20, 'Demasiadas líneas en un mismo grupo'),
+    nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(120),
+    telefono: z.string().trim().min(1, 'El teléfono es obligatorio').max(40),
+    abono: abonoSchema.optional(),
+  })
+  .refine((d) => d.lineas.reduce((suma, l) => suma + l.personas, 0) <= 200, {
+    message: 'El grupo supera el máximo de 200 personas',
+    path: ['lineas'],
+  })
 
 const rangoLibreSchema = z
   .object({ checkIn: fechaISO, checkOut: fechaISO })
@@ -382,9 +403,13 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
 }
 
 /**
- * Emite un ticket de pasadía con total calculado (personas × precio del plan).
- * Devuelve error legible si el trigger de cupo de la BD lo rechaza (P0001 /
- * mensaje CUPO_AGOTADO).
+ * Emite UN ticket para TODO el grupo de pasadía (R4): el grupo puede combinar
+ * planes (líneas plan+personas). El dinero lo calcula el SERVIDOR: para cada
+ * línea busca el precio real en pass_products (is_sample=false) y hace
+ * subtotal = personas × precio; el total es la suma. El ticket guarda
+ * personas = Σ líneas (la base del cupo), total_muestra = Σ subtotales y el
+ * desglose en el jsonb lineas. Devuelve error legible si el trigger de cupo de
+ * la BD lo rechaza (P0001 / mensaje CUPO_AGOTADO).
  */
 export async function crearPasadia(input: unknown): Promise<Resultado> {
   const parsed = crearPasadiaSchema.safeParse(input)
@@ -396,20 +421,45 @@ export async function crearPasadia(input: unknown): Promise<Resultado> {
   const d = parsed.data
   const comprobante = extraerComprobante(input)
 
-  const { data: plan, error: errorPlan } = await supabase
+  // Precio real de cada plan involucrado, en una sola consulta.
+  const slugs = [...new Set(d.lineas.map((l) => l.plan))]
+  const { data: planes, error: errorPlanes } = await supabase
     .from('pass_products')
-    .select('id, nombre, precio_persona_muestra')
-    .eq('slug', d.plan)
+    .select('slug, nombre, precio_persona_muestra')
+    .in('slug', slugs)
     .eq('is_sample', false)
-    .maybeSingle()
 
-  if (errorPlan) {
-    return { success: false, error: `No se pudo consultar el plan: ${errorPlan.message}` }
+  if (errorPlanes) {
+    return { success: false, error: `No se pudieron consultar los planes: ${errorPlanes.message}` }
   }
-  if (!plan) return { success: false, error: 'El plan de pasadía elegido no existe' }
 
-  const precio = Number(plan.precio_persona_muestra)
-  const total = Math.round(d.personas * precio * 100) / 100
+  const precioYNombre = new Map(
+    ((planes ?? []) as Array<{
+      slug: string
+      nombre: string
+      precio_persona_muestra: number | null
+    }>).map((p) => [p.slug, { precio: Number(p.precio_persona_muestra), nombre: p.nombre }]),
+  )
+
+  // Desglose definitivo; un plan inexistente (o sin precio) rechaza TODO el
+  // grupo antes de tocar tickets.
+  const desglose: LineaPasadia[] = []
+  for (const linea of d.lineas) {
+    const plan = precioYNombre.get(linea.plan)
+    if (!plan || !Number.isFinite(plan.precio)) {
+      return { success: false, error: 'El plan de pasadía elegido no existe' }
+    }
+    desglose.push({
+      plan: linea.plan,
+      nombre: plan.nombre,
+      personas: linea.personas,
+      precio_persona: plan.precio,
+      subtotal: Math.round(linea.personas * plan.precio * 100) / 100,
+    })
+  }
+
+  const personasTotales = desglose.reduce((suma, l) => suma + l.personas, 0)
+  const total = Math.round(desglose.reduce((suma, l) => suma + l.subtotal, 0) * 100) / 100
 
   const MAX_INTENTOS = 3
   for (let intento = 1; intento <= MAX_INTENTOS; intento++) {
@@ -422,8 +472,9 @@ export async function crearPasadia(input: unknown): Promise<Resultado> {
       .insert({
         codigo,
         fecha: d.fecha,
-        personas: d.personas,
+        personas: personasTotales,
         addons: [],
+        lineas: desglose,
         total_muestra: total,
         nombre: d.nombre,
         telefono: d.telefono,
@@ -457,8 +508,8 @@ export async function crearPasadia(input: unknown): Promise<Resultado> {
         summary: {
           codigo,
           fecha: d.fecha,
-          plan: d.plan,
-          personas: d.personas,
+          lineas: desglose,
+          personas: personasTotales,
           total_muestra: total,
         },
       })

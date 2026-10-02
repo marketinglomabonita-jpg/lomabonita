@@ -2,7 +2,9 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { formatCop } from '@/core/lib/money'
 import { Button } from '@/core/ui/button'
+import { FREE_CHILD_AGE, PERSON_RATE } from '@/features/hospedaje/data/rooms'
 import { crearReservaAlojamiento, consultarHabitacionesLibres } from '../api/acciones'
 import type { HabitacionLibre } from '../api/dia'
 import { AbonoFields } from './abono-fields'
@@ -20,13 +22,33 @@ type Props = {
 
 type Mensaje = { tipo: 'ok' | 'error'; texto: string }
 
+const ADULTOS_INICIALES = 2
+const NINOS_INICIALES = 0
+
+/** Noches entre dos fechas ISO por partes UTC; 0 si el rango no es válido. */
+function nochesEntre(llegada: string, salida: string): number {
+  if (!(llegada < salida)) return 0
+  const [ai, mi, di] = llegada.split('-').map(Number)
+  const [as, ms, ds] = salida.split('-').map(Number)
+  return Math.round((Date.UTC(as, ms - 1, ds) - Date.UTC(ai, mi - 1, di)) / 86_400_000)
+}
+
+/** Sugerencia por tarifa (R4): personas × PERSON_RATE × noches; null si el rango o la gente no alcanzan para calcularla. */
+function sugerenciaDe(llegada: string, salida: string, adultos: number, ninos: number): number | null {
+  const personas = adultos + ninos
+  if (!(llegada < salida) || personas <= 0) return null
+  return personas * PERSON_RATE * nochesEntre(llegada, salida)
+}
+
 /**
  * Formulario de reserva de alojamiento: vive dentro del popup del día
  * (R3.1a) o embebido en la página del día. El selector solo ofrece
  * habitaciones LIBRES para el rango elegido; si aun así alguien la ocupa a
  * la vez, la restricción de exclusión de la BD rechaza el insert y la action
- * traduce el error 23P01 al mensaje visible. Incluye valor total y la
- * sección de Abono con saldo en vivo (AbonoFields).
+ * traduce el error 23P01 al mensaje visible. El valor total se PRE-RELLENA en
+ * vivo con la tarifa (personas × PERSON_RATE × noches) y queda editable
+ * (R4: menores de 5 gratis, el admin ajusta); alimenta el saldo en vivo de la
+ * sección de Abono (AbonoFields). El servidor guarda el valor enviado.
  */
 export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onDone }: Props) {
   const router = useRouter()
@@ -34,13 +56,29 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
 
   const [llegada, setLlegada] = useState(fecha)
   const [salida, setSalida] = useState(salidaInicial)
+  const [adultos, setAdultos] = useState(ADULTOS_INICIALES)
+  const [ninos, setNinos] = useState(NINOS_INICIALES)
   const [libres, setLibres] = useState<HabitacionLibre[]>(habitacionesLibres)
   const [recargando, setRecargando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
   const [mensaje, setMensaje] = useState<Mensaje | null>(null)
-  const [valorTotalTexto, setValorTotalTexto] = useState('')
+  // Pre-relleno por tarifa (R4): arranca sugiriendo con los valores iniciales
+  // y se recalcula en cada evento que la afecta (personas o fechas). El campo
+  // queda EDITABLE: menores de FREE_CHILD_AGE no pagan y el admin ajusta a
+  // mano antes de guardar; lo escrito dura hasta el próximo cambio de la
+  // sugerencia. Event-driven, sin effect (set-state-in-effect del linter).
+  const [valorTotalTexto, setValorTotalTexto] = useState(() => {
+    const inicial = sugerenciaDe(fecha, salidaInicial, ADULTOS_INICIALES, NINOS_INICIALES)
+    return inicial !== null ? String(inicial) : ''
+  })
 
   const fechasValidas = llegada < salida
+
+  /** Re-llena el campo con la tarifa sugerida para los valores NUEVOS dados. */
+  const aplicarSugerencia = (l: string, s: string, ad: number, ni: number) => {
+    const sugerida = sugerenciaDe(l, s, ad, ni)
+    if (sugerida !== null) setValorTotalTexto(String(sugerida))
+  }
 
   // null = sin valor (o no numérico): AbonoFields muestra el saldo "por definir".
   const valorTotalNum = valorTotalTexto.trim() === '' ? null : Number(valorTotalTexto)
@@ -66,12 +104,14 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
   const handleLlegada = (valor: string) => {
     setLlegada(valor)
     setMensaje(null)
+    aplicarSugerencia(valor, salida, adultos, ninos)
     void recargarLibres(valor, salida)
   }
 
   const handleSalida = (valor: string) => {
     setSalida(valor)
     setMensaje(null)
+    aplicarSugerencia(llegada, valor, adultos, ninos)
     void recargarLibres(llegada, valor)
   }
 
@@ -189,7 +229,13 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
             required
             min={1}
             max={50}
-            defaultValue={2}
+            value={adultos}
+            onChange={(e) => {
+              const valor = Number(e.target.value) || 0
+              setAdultos(valor)
+              setMensaje(null)
+              aplicarSugerencia(llegada, salida, valor, ninos)
+            }}
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
@@ -204,7 +250,13 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
             name="ninos"
             min={0}
             max={50}
-            defaultValue={0}
+            value={ninos}
+            onChange={(e) => {
+              const valor = Number(e.target.value) || 0
+              setNinos(valor)
+              setMensaje(null)
+              aplicarSugerencia(llegada, salida, adultos, valor)
+            }}
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
@@ -241,7 +293,7 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
 
         <div>
           <label htmlFor="reserva-valor" className="text-sm font-medium">
-            Valor total (opcional)
+            Valor total
           </label>
           <input
             id="reserva-valor"
@@ -257,6 +309,10 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
             }}
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
           />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Sugerido por tarifa ({formatCop(PERSON_RATE)} por persona por noche); ajusta si hay
+            menores de {FREE_CHILD_AGE} años (gratis)
+          </p>
         </div>
 
         <div>

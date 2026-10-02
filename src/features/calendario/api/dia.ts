@@ -32,13 +32,29 @@ export type PlanPasadia = {
   precio: number
 }
 
+/**
+ * Una línea del desglose de un grupo combinado (R4): un plan, cuántas personas
+ * van en él y su cuenta. Espejo del jsonb tickets.lineas que escribe
+ * crearPasadia; el precio y el subtotal los calculó el servidor.
+ */
+export type LineaPasadia = {
+  plan: string
+  nombre: string
+  personas: number
+  precio_persona: number
+  subtotal: number
+}
+
 /** Pasadía (ticket) ya emitida para el día. */
 export type PasadiaDelDia = {
   id: string
   codigo: string
   nombre: string
+  /** Personas TOTALES del grupo (suma de líneas): la base del cupo. */
   personas: number
   total: number
+  /** Desglose por plan cuando el grupo combinó planes ([] en tickets viejos). */
+  lineas: LineaPasadia[]
 }
 
 export type DetalleDia = {
@@ -176,7 +192,7 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
       .overlaps('during', `[${fecha},${diaSiguiente(fecha)})`),
     supabase
       .from('tickets')
-      .select('id, codigo, nombre, personas, total_muestra')
+      .select('id, codigo, nombre, personas, total_muestra, lineas')
       .eq('fecha', fecha)
       .neq('estado', 'cancelado')
       .order('created_at'),
@@ -201,12 +217,25 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
     nombre: string
     personas: number
     total_muestra: number | null
+    lineas: unknown
   }>).map((t) => ({
     id: t.id,
     codigo: t.codigo,
     nombre: t.nombre,
     personas: t.personas,
     total: Number(t.total_muestra ?? 0),
+    // lineas llega como jsonb (unknown): se normaliza campo por campo para no
+    // propagar un shape inesperado a la UI (los tickets viejos traen []).
+    lineas: (Array.isArray(t.lineas) ? (t.lineas as unknown[]) : []).map((cruda) => {
+      const l = (cruda ?? {}) as Partial<LineaPasadia>
+      return {
+        plan: String(l.plan ?? ''),
+        nombre: String(l.nombre ?? ''),
+        personas: Number(l.personas ?? 0),
+        precio_persona: Number(l.precio_persona ?? 0),
+        subtotal: Number(l.subtotal ?? 0),
+      }
+    }),
   }))
 
   return {
