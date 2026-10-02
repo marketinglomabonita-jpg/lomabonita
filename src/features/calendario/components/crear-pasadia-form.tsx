@@ -25,6 +25,9 @@ type LineaForm = { plan: string; personas: number }
 
 const LINEA_INICIAL: LineaForm = { plan: '', personas: 1 }
 
+/** La rueda del mouse no cambia el número: suelta el foco y deja scrollear la página. */
+const soltarFocoEnRueda = (e: React.WheelEvent<HTMLInputElement>) => e.currentTarget.blur()
+
 type Props = {
   /** Día de la pasadía (YYYY-MM-DD): el día abierto en el calendario. */
   fecha: string
@@ -106,6 +109,7 @@ export function CrearPasadiaForm({ fecha, planes, onDone }: Props) {
         lineas: lineas.map((l) => ({ plan: l.plan, personas: l.personas })),
         nombre: formData.get('nombre'),
         telefono: formData.get('telefono'),
+        email: formData.get('email'),
         abono,
       })
 
@@ -188,7 +192,8 @@ export function CrearPasadiaForm({ fecha, planes, onDone }: Props) {
                 aria-label={`Personas del plan ${indice + 1}`}
                 value={linea.personas}
                 onChange={(e) => actualizarLinea(indice, { personas: Number(e.target.value) || 0 })}
-                className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+                onWheel={soltarFocoEnRueda}
+                className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
               />
             </div>
 
@@ -238,6 +243,21 @@ export function CrearPasadiaForm({ fecha, planes, onDone }: Props) {
             required
             maxLength={40}
             placeholder="Ej: 310 555 1234"
+            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="pasadia-email" className="text-sm font-medium">
+            Correo electrónico{' '}
+            <span className="font-normal text-muted-foreground">(opcional)</span>
+          </label>
+          <input
+            id="pasadia-email"
+            type="email"
+            name="email"
+            maxLength={120}
+            placeholder="cliente@correo.com"
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>

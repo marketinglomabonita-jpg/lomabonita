@@ -25,6 +25,9 @@ type Mensaje = { tipo: 'ok' | 'error'; texto: string }
 const ADULTOS_INICIALES = 2
 const NINOS_INICIALES = 0
 
+/** La rueda del mouse no cambia el número: suelta el foco y deja scrollear la página. */
+const soltarFocoEnRueda = (e: React.WheelEvent<HTMLInputElement>) => e.currentTarget.blur()
+
 /** Noches entre dos fechas ISO por partes UTC; 0 si el rango no es válido. */
 function nochesEntre(llegada: string, salida: string): number {
   if (!(llegada < salida)) return 0
@@ -206,6 +209,7 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
         ninos: formData.get('ninos'),
         nombre: formData.get('nombre'),
         telefono: formData.get('telefono'),
+        email: formData.get('email'),
         valor_total: formData.get('valor_total'),
         extras: extrasActivos.length > 0 ? extrasActivos : undefined,
         abono,
@@ -301,7 +305,8 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
               setMensaje(null)
               aplicarSugerencia(llegada, salida, valor, ninos, sumaExtras)
             }}
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            onWheel={soltarFocoEnRueda}
+            className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
           />
         </div>
 
@@ -322,7 +327,8 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
               setMensaje(null)
               aplicarSugerencia(llegada, salida, adultos, valor, sumaExtras)
             }}
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            onWheel={soltarFocoEnRueda}
+            className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
           />
         </div>
 
@@ -357,6 +363,21 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
         </div>
 
         <div>
+          <label htmlFor="reserva-email" className="text-sm font-medium">
+            Correo electrónico{' '}
+            <span className="font-normal text-muted-foreground">(opcional)</span>
+          </label>
+          <input
+            id="reserva-email"
+            type="email"
+            name="email"
+            maxLength={120}
+            placeholder="cliente@correo.com"
+            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div>
           <label htmlFor="reserva-valor" className="text-sm font-medium">
             Valor total
           </label>
@@ -372,7 +393,8 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
               setValorTotalTexto(e.target.value)
               setMensaje(null)
             }}
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            onWheel={soltarFocoEnRueda}
+            className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
           />
           <p className="mt-1 text-xs text-muted-foreground">
             Sugerido por tarifa ({formatCop(PERSON_RATE)} por persona por noche) más los extras
@@ -448,7 +470,8 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
                       onChange={(e) =>
                         actualizarExtra(extra.plan, { personas: Number(e.target.value) || 0 })
                       }
-                      className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+                      onWheel={soltarFocoEnRueda}
+                      className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
                     />
                   </div>
 
@@ -468,7 +491,8 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
                       onChange={(e) =>
                         actualizarExtra(extra.plan, { precioTexto: e.target.value })
                       }
-                      className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+                      onWheel={soltarFocoEnRueda}
+                      className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
                     />
                   </div>
 

@@ -11,6 +11,9 @@ const MEDIOS_ABONO = [
   { value: 'otro', label: 'Otro' },
 ] as const
 
+/** La rueda del mouse no cambia el número: suelta el foco y deja scrollear la página. */
+const soltarFocoEnRueda = (e: React.WheelEvent<HTMLInputElement>) => e.currentTarget.blur()
+
 type Props = {
   /** Valor pactado de la reserva o total calculado de la pasadía; null = por definir. */
   valorTotal: number | null
@@ -69,7 +72,8 @@ export function AbonoFields({ valorTotal }: Props) {
               placeholder="Ej: 100000"
               value={montoTexto}
               onChange={(e) => setMontoTexto(e.target.value)}
-              className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+              onWheel={soltarFocoEnRueda}
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
             />
           </div>
 

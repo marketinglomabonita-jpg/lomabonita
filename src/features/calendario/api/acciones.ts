@@ -84,6 +84,16 @@ const fechaISO = z
   .refine(esFechaISOValida, 'Fecha inválida (se espera YYYY-MM-DD)')
 
 /**
+ * Correo del CLIENTE (opcional): ausente, vacío o solo espacios → null (la
+ * columna es nullable); si viene, debe ser un email válido. Se guarda en
+ * reservations.email / tickets.email.
+ */
+const emailClienteSchema = z.preprocess(
+  (v) => (v === undefined || v === null || (typeof v === 'string' && v.trim() === '') ? null : v),
+  z.string().trim().email('El correo electrónico no es válido').nullable(),
+)
+
+/**
  * Abono registrado junto con la creación (R3.1a): solo MONTO y MEDIO; la
  * subida de comprobante es la pieza siguiente. payments es append-only
  * (0020: staff select/insert, sin update ni delete) y la BD exige monto > 0
@@ -149,6 +159,7 @@ const crearReservaSchema = z
       .max(50, 'Cantidad de niños fuera de rango'),
     nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(120),
     telefono: z.string().trim().min(1, 'El teléfono es obligatorio').max(40),
+    email: emailClienteSchema,
     // Opcional: vacío → null (la reserva nace "por definir" y el saldo en
     // vivo del formulario lo refleja). Ya incluye los extras sumados (R4.A):
     // sigue siendo editable y solo se exige que no sea negativo.
@@ -192,6 +203,7 @@ const crearPasadiaSchema = z
       .max(20, 'Demasiadas líneas en un mismo grupo'),
     nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(120),
     telefono: z.string().trim().min(1, 'El teléfono es obligatorio').max(40),
+    email: emailClienteSchema,
     abono: abonoSchema.optional(),
   })
   .refine((d) => d.lineas.reduce((suma, l) => suma + l.personas, 0) <= 200, {
@@ -392,6 +404,7 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
         ninos: d.ninos,
         nombre: d.nombre,
         telefono: d.telefono,
+        email: d.email,
         estado: 'confirmada',
         valor_total: d.valor_total,
         extras: lineasExtras,
@@ -530,6 +543,7 @@ export async function crearPasadia(input: unknown): Promise<Resultado> {
         total_muestra: total,
         nombre: d.nombre,
         telefono: d.telefono,
+        email: d.email,
         estado: 'emitido',
       })
       .select('id')

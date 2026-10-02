@@ -15,7 +15,7 @@ export const metadata: Metadata = {
  */
 const SECCIONES = [
   { href: '/admin/calendario', label: 'Calendario', activa: true },
-  { href: '/admin', label: 'Resumen', activa: true },
+  { href: '/admin/resumen', label: 'Resumen', activa: true },
   { href: '/admin/hospedaje', label: 'Hospedaje', activa: true },
   { href: '/admin/restaurante', label: 'Restaurante', activa: true },
   { href: '/admin/pasadias', label: 'Pasadías', activa: true },
