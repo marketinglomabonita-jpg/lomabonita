@@ -5,25 +5,30 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/core/ui/button'
 import { crearReservaAlojamiento, consultarHabitacionesLibres } from '../api/acciones'
 import type { HabitacionLibre } from '../api/dia'
+import { AbonoFields } from './abono-fields'
 
 type Props = {
-  /** Día visto en la página: llegada por defecto (YYYY-MM-DD). */
+  /** Día de llegada por defecto (YYYY-MM-DD): el día abierto en el calendario. */
   fecha: string
-  /** Salida inicial (= día siguiente de fecha, calculada en el servidor). */
+  /** Salida inicial (= día siguiente de fecha, calculada por quien lo monta). */
   salidaInicial: string
-  /** Habitaciones libres para [fecha, salidaInicial), armadas en el servidor. */
+  /** Habitaciones libres para [fecha, salidaInicial), armadas por quien lo monta. */
   habitacionesLibres: HabitacionLibre[]
+  /** Cierra el popup tras crear con éxito (vivo dentro del modal del día). */
+  onDone?: () => void
 }
 
 type Mensaje = { tipo: 'ok' | 'error'; texto: string }
 
 /**
- * Formulario de reserva de alojamiento desde el día del calendario.
- * El selector solo ofrece habitaciones LIBRES para el rango elegido; si aun
- * así alguien la ocupa a la vez, la restricción de exclusión de la BD rechaza
- * el insert y la action traduce el error 23P01 al mensaje visible.
+ * Formulario de reserva de alojamiento: vive dentro del popup del día
+ * (R3.1a) o embebido en la página del día. El selector solo ofrece
+ * habitaciones LIBRES para el rango elegido; si aun así alguien la ocupa a
+ * la vez, la restricción de exclusión de la BD rechaza el insert y la action
+ * traduce el error 23P01 al mensaje visible. Incluye valor total y la
+ * sección de Abono con saldo en vivo (AbonoFields).
  */
-export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres }: Props) {
+export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onDone }: Props) {
   const router = useRouter()
   const consultaId = useRef(0)
 
@@ -33,8 +38,13 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres }: P
   const [recargando, setRecargando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
   const [mensaje, setMensaje] = useState<Mensaje | null>(null)
+  const [valorTotalTexto, setValorTotalTexto] = useState('')
 
   const fechasValidas = llegada < salida
+
+  // null = sin valor (o no numérico): AbonoFields muestra el saldo "por definir".
+  const valorTotalNum = valorTotalTexto.trim() === '' ? null : Number(valorTotalTexto)
+  const valorTotal = valorTotalNum !== null && Number.isFinite(valorTotalNum) ? valorTotalNum : null
 
   // Reconsulta las libres cuando cambia el rango (cuenta de consultas para
   // ignorar respuestas viejas si el usuario sigue editando).
@@ -73,6 +83,16 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres }: P
     setMensaje(null)
 
     try {
+      // Abono opcional (R3.1a): AbonoFields aporta los campos nombrados; si
+      // el toggle quedó apagado no vienen y se envía undefined. El monto y
+      // el medio los valida la action con Zod.
+      const abono = formData.get('abono_habilitado')
+        ? {
+            monto: formData.get('abono_monto'),
+            medio: formData.get('abono_medio'),
+          }
+        : undefined
+
       const resultado = await crearReservaAlojamiento({
         room_id: formData.get('room_id'),
         llegada,
@@ -82,13 +102,21 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres }: P
         nombre: formData.get('nombre'),
         telefono: formData.get('telefono'),
         valor_total: formData.get('valor_total'),
+        abono,
       })
 
       if (resultado.success) {
-        setMensaje({ tipo: 'ok', texto: 'Reserva creada y confirmada.' })
-        // La lista fresca ya no incluye la habitación recién ocupada.
         router.refresh()
-        await recargarLibres(llegada, salida)
+        if (resultado.aviso) {
+          // Éxito parcial: la reserva existe pero el abono no se registró.
+          // El popup queda abierto para que el aviso se lea.
+          setMensaje({ tipo: 'ok', texto: resultado.aviso })
+          await recargarLibres(llegada, salida)
+        } else {
+          setMensaje({ tipo: 'ok', texto: 'Reserva creada y confirmada.' })
+          onDone?.()
+          await recargarLibres(llegada, salida)
+        }
       } else {
         setMensaje({ tipo: 'error', texto: resultado.error })
         router.refresh()
@@ -221,6 +249,11 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres }: P
             min={0}
             step="0.01"
             placeholder="Por definir"
+            value={valorTotalTexto}
+            onChange={(e) => {
+              setValorTotalTexto(e.target.value)
+              setMensaje(null)
+            }}
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
@@ -251,6 +284,8 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres }: P
           </select>
         </div>
       </div>
+
+      <AbonoFields valorTotal={valorTotal} />
 
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">

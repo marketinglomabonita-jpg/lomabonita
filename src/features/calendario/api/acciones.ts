@@ -22,12 +22,32 @@ import { esFechaISOValida, habitacionesLibres, type HabitacionLibre } from './di
  */
 const ROLES_AGENDA = ['owner', 'admin', 'gerente', 'comercial', 'recepcion']
 
-/** Resultado uniforme para las acciones llamadas desde los formularios. */
-type Resultado = { success: true } | { success: false; error: string }
+/**
+ * Resultado uniforme para las acciones llamadas desde los formularios.
+ * `aviso` comunica un éxito parcial (la reserva se creó pero el abono no
+ * alcanzó a registrarse): la UI lo muestra en lugar de cerrar y perderlo.
+ */
+type Resultado = { success: true; aviso?: string } | { success: false; error: string }
 
 const fechaISO = z
   .string({ required_error: 'La fecha es obligatoria' })
   .refine(esFechaISOValida, 'Fecha inválida (se espera YYYY-MM-DD)')
+
+/**
+ * Abono registrado junto con la creación (R3.1a): solo MONTO y MEDIO; la
+ * subida de comprobante es la pieza siguiente. payments es append-only
+ * (0020: staff select/insert, sin update ni delete) y la BD exige monto > 0
+ * y un único destino (check XOR): Zod los anticipa con mensajes claros.
+ */
+const MEDIOS_ABONO = ['efectivo', 'transferencia', 'datáfono', 'otro'] as const
+
+const abonoSchema = z.object({
+  monto: z.coerce
+    .number({ invalid_type_error: 'El monto del abono debe ser un número' })
+    .positive('El monto del abono debe ser mayor a 0')
+    .max(999_999_999, 'El monto del abono excede el máximo permitido'),
+  medio: z.enum(MEDIOS_ABONO, { message: 'Elige un medio de pago válido' }),
+})
 
 const crearReservaSchema = z
   .object({
@@ -46,7 +66,8 @@ const crearReservaSchema = z
       .max(50, 'Cantidad de niños fuera de rango'),
     nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(120),
     telefono: z.string().trim().min(1, 'El teléfono es obligatorio').max(40),
-    // Opcional: vacío → null (el saldo "por definir" se maneja en otra pieza).
+    // Opcional: vacío → null (la reserva nace "por definir" y el saldo en
+    // vivo del formulario lo refleja).
     valor_total: z.preprocess(
       (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
       z
@@ -54,6 +75,8 @@ const crearReservaSchema = z
         .min(0, 'El valor total no puede ser negativo')
         .nullable(),
     ),
+    // Abono opcional al crear (R3.1a): llega solo si el toggle quedó activo.
+    abono: abonoSchema.optional(),
   })
   .refine((d) => d.llegada < d.salida, {
     message: 'La salida debe ser posterior a la llegada',
@@ -70,6 +93,7 @@ const crearPasadiaSchema = z.object({
     .max(200, 'Cantidad de personas fuera de rango'),
   nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(120),
   telefono: z.string().trim().min(1, 'El teléfono es obligatorio').max(40),
+  abono: abonoSchema.optional(),
 })
 
 const rangoLibreSchema = z
@@ -146,6 +170,47 @@ function generarCodigo(prefijo: string): string {
   return `${prefijo}-${sufijo}`
 }
 
+/**
+ * Inserta el abono en payments y lo audita (`abono.registrar`). Solo INSERT:
+ * la tabla es append-only. Devuelve null si quedó registrado, o el mensaje de
+ * error para que quien llama decida cómo informarlo (el destino ya existe).
+ * El entity_id de la auditoría es el código del destino: la fila de payments
+ * no tiene un código legible y no se hace .select() solo para auditar.
+ */
+async function insertarAbonoYAuditar(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  actor: { id: string; email: string },
+  destino: { reservationId?: string; ticketId?: string; codigo: string },
+  abono: { monto: number; medio: string },
+): Promise<string | null> {
+  const { error } = await supabase.from('payments').insert({
+    reservation_id: destino.reservationId ?? null,
+    ticket_id: destino.ticketId ?? null,
+    monto: abono.monto,
+    medio: abono.medio,
+    actor_id: actor.id,
+    actor_email: actor.email,
+  })
+
+  if (error) return error.message
+
+  await registrarEnAuditoria(supabase, {
+    actorId: actor.id,
+    actorEmail: actor.email,
+    action: 'abono.registrar',
+    entity: 'payment',
+    entityId: destino.codigo,
+    summary: {
+      destino: destino.reservationId ? 'reserva' : 'pasadia',
+      codigo_destino: destino.codigo,
+      monto: abono.monto,
+      medio: abono.medio,
+    },
+  })
+
+  return null
+}
+
 /** Revalida la vista Mes y la página del día donde se creó la reserva. */
 function revalidarCalendario(fecha: string) {
   revalidatePath('/admin/calendario')
@@ -187,19 +252,40 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
   for (let intento = 1; intento <= MAX_INTENTOS; intento++) {
     const codigo = generarCodigo('R')
 
-    const { error } = await supabase.from('reservations').insert({
-      codigo,
-      room_id: d.room_id,
-      during: `[${d.llegada},${d.salida})`, // llegada inclusiva, salida exclusiva
-      adultos: d.adultos,
-      ninos: d.ninos,
-      nombre: d.nombre,
-      telefono: d.telefono,
-      estado: 'confirmada',
-      valor_total: d.valor_total,
-    })
+    // El id se lee de vuelta porque payments.reservation_id apunta al UUID,
+    // no al código (único .select() necesario, no es para auditar).
+    const { data: creada, error } = await supabase
+      .from('reservations')
+      .insert({
+        codigo,
+        room_id: d.room_id,
+        during: `[${d.llegada},${d.salida})`, // llegada inclusiva, salida exclusiva
+        adultos: d.adultos,
+        ninos: d.ninos,
+        nombre: d.nombre,
+        telefono: d.telefono,
+        estado: 'confirmada',
+        valor_total: d.valor_total,
+      })
+      .select('id')
+      .single()
 
-    if (!error) {
+    if (!error && creada) {
+      // Abono al crear (R3.1a): si el insert del pago falla, la reserva YA
+      // existe — se informa como aviso, no como error de la creación.
+      let aviso: string | undefined
+      if (d.abono) {
+        const falloAbono = await insertarAbonoYAuditar(
+          supabase,
+          { id: userId, email: actorEmail },
+          { reservationId: creada.id, codigo },
+          d.abono,
+        )
+        if (falloAbono) {
+          aviso = `La reserva se creó, pero no se pudo registrar el abono: ${falloAbono}`
+        }
+      }
+
       await registrarEnAuditoria(supabase, {
         actorId: userId,
         actorEmail,
@@ -217,7 +303,7 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
         },
       })
       revalidarCalendario(d.llegada)
-      return { success: true }
+      return aviso ? { success: true, aviso } : { success: true }
     }
 
     // Solape real: la restricción de exclusión (exclusion_violation) es la
@@ -270,18 +356,38 @@ export async function crearPasadia(input: unknown): Promise<Resultado> {
   for (let intento = 1; intento <= MAX_INTENTOS; intento++) {
     const codigo = generarCodigo('PD')
 
-    const { error } = await supabase.from('tickets').insert({
-      codigo,
-      fecha: d.fecha,
-      personas: d.personas,
-      addons: [],
-      total_muestra: total,
-      nombre: d.nombre,
-      telefono: d.telefono,
-      estado: 'emitido',
-    })
+    // El id se lee de vuelta porque payments.ticket_id apunta al UUID (mismo
+    // único .select() necesario que en reservations).
+    const { data: emitido, error } = await supabase
+      .from('tickets')
+      .insert({
+        codigo,
+        fecha: d.fecha,
+        personas: d.personas,
+        addons: [],
+        total_muestra: total,
+        nombre: d.nombre,
+        telefono: d.telefono,
+        estado: 'emitido',
+      })
+      .select('id')
+      .single()
 
-    if (!error) {
+    if (!error && emitido) {
+      // Abono al crear: mismo trato que en reservas (aviso si el pago falla).
+      let aviso: string | undefined
+      if (d.abono) {
+        const falloAbono = await insertarAbonoYAuditar(
+          supabase,
+          { id: userId, email: actorEmail },
+          { ticketId: emitido.id, codigo },
+          d.abono,
+        )
+        if (falloAbono) {
+          aviso = `La pasadía se emitió, pero no se pudo registrar el abono: ${falloAbono}`
+        }
+      }
+
       await registrarEnAuditoria(supabase, {
         actorId: userId,
         actorEmail,
@@ -297,7 +403,7 @@ export async function crearPasadia(input: unknown): Promise<Resultado> {
         },
       })
       revalidarCalendario(d.fecha)
-      return { success: true }
+      return aviso ? { success: true, aviso } : { success: true }
     }
 
     // El trigger enforce_ticket_capacity serializa por fecha y aborta con
@@ -312,4 +418,84 @@ export async function crearPasadia(input: unknown): Promise<Resultado> {
   }
 
   return { success: false, error: 'No se pudo generar un código único para la pasadía' }
+}
+
+const registrarAbonoSchema = z
+  .object({
+    reservationId: z.string().uuid('Reserva inválida').optional(),
+    ticketId: z.string().uuid('Pasadía inválida').optional(),
+    monto: abonoSchema.shape.monto,
+    medio: abonoSchema.shape.medio,
+  })
+  .refine((d) => Boolean(d.reservationId) !== Boolean(d.ticketId), {
+    message: 'El abono debe apuntar a una reserva o a una pasadía, no a ambos ni a ninguno',
+    path: ['reservationId'],
+  })
+
+/**
+ * Suma un abono a una reserva o pasadía YA existente (R3.1a): mismo trato que
+ * el abono al crear — solo INSERT en payments + auditoría + revalidación
+ * staff. Lee la fecha del destino (único select necesario) para revalidar la
+ * página del día correcta, donde vive el saldo.
+ */
+export async function registrarAbono(input: unknown): Promise<Resultado> {
+  const parsed = registrarAbonoSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  }
+
+  const { supabase, userId, email: actorEmail } = await requerirStaff(ROLES_AGENDA)
+  const d = parsed.data
+
+  // Fecha y código del destino para revalidar el día y auditar con el código
+  // legible (R-XXXXXX / PD-XXXXXX); si no se encontrara, quedan el UUID y una
+  // revalidación genérica de la vista Mes.
+  let fecha: string | null = null
+  let codigoDestino = d.reservationId ?? d.ticketId ?? ''
+  if (d.reservationId) {
+    const { data } = await supabase
+      .from('reservations')
+      .select('codigo, during')
+      .eq('id', d.reservationId)
+      .maybeSingle()
+    if (data) {
+      codigoDestino = data.codigo ?? codigoDestino
+      // during "[2026-10-01,2026-10-05)": la llegada ocupa los chars 1..10.
+      fecha = data.during.slice(1, 11)
+    }
+  } else if (d.ticketId) {
+    const { data } = await supabase
+      .from('tickets')
+      .select('codigo, fecha')
+      .eq('id', d.ticketId)
+      .maybeSingle()
+    if (data) {
+      codigoDestino = data.codigo ?? codigoDestino
+      fecha = data.fecha
+    }
+  }
+
+  const abono = { monto: d.monto, medio: d.medio }
+  const fallo = d.reservationId
+    ? await insertarAbonoYAuditar(
+        supabase,
+        { id: userId, email: actorEmail },
+        { reservationId: d.reservationId, codigo: codigoDestino },
+        abono,
+      )
+    : d.ticketId
+      ? await insertarAbonoYAuditar(
+          supabase,
+          { id: userId, email: actorEmail },
+          { ticketId: d.ticketId, codigo: codigoDestino },
+          abono,
+        )
+      : 'Falta el destino del abono' // inalcanzable: el refine lo garantiza
+
+  if (fallo) return { success: false, error: `No se pudo registrar el abono: ${fallo}` }
+
+  if (fecha) revalidarCalendario(fecha)
+  else revalidatePath('/admin/calendario')
+
+  return { success: true }
 }
