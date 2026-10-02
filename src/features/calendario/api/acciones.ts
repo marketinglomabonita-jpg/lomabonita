@@ -99,6 +99,39 @@ const abonoSchema = z.object({
   medio: z.enum(MEDIOS_ABONO, { message: 'Elige un medio de pago válido' }),
 })
 
+/**
+ * Experiencias sumables a una reserva (R4.A): SOLO Balsaje y Cascadas. Relax
+ * va incluido en el alojamiento (no es extra) y Racing queda fuera hasta
+ * definir su tarifa. El precio es EDITABLE ("tarifa por confirmar"): se
+ * respeta el enviado (solo se exige ≥ 0, no se fuerza al precio de pasadía);
+ * el nombre y el subtotal los arma el servidor para el jsonb `extras`.
+ */
+const SLUGS_EXTRA = ['loma-aventura-balsaje', 'loma-aventura-cascadas'] as const
+
+const NOMBRES_EXTRA: Record<(typeof SLUGS_EXTRA)[number], string> = {
+  'loma-aventura-balsaje': 'Loma Aventura Balsaje',
+  'loma-aventura-cascadas': 'Loma Aventura Cascadas',
+}
+
+const extraReservaSchema = z.object({
+  plan: z.enum(SLUGS_EXTRA, {
+    message: 'Hay un extra no disponible: solo Balsaje o Cascadas se pueden sumar',
+  }),
+  personas: z.coerce
+    .number({ invalid_type_error: 'Las personas del extra deben ser un número' })
+    .int('Las personas del extra deben ser un número entero')
+    .min(1, 'Cada extra necesita al menos 1 persona')
+    .max(50, 'Cantidad de personas del extra fuera de rango'),
+  // Tarifa editable: vacío NO es 0 (regalaría el extra); es un error claro.
+  precio: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? Number.NaN : Number(v)),
+    z
+      .number({ invalid_type_error: 'El precio del extra debe ser un número' })
+      .min(0, 'El precio del extra no puede ser negativo')
+      .max(999_999_999, 'El precio del extra excede el máximo permitido'),
+  ),
+})
+
 const crearReservaSchema = z
   .object({
     room_id: z.string().uuid('Habitación inválida'),
@@ -117,7 +150,8 @@ const crearReservaSchema = z
     nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(120),
     telefono: z.string().trim().min(1, 'El teléfono es obligatorio').max(40),
     // Opcional: vacío → null (la reserva nace "por definir" y el saldo en
-    // vivo del formulario lo refleja).
+    // vivo del formulario lo refleja). Ya incluye los extras sumados (R4.A):
+    // sigue siendo editable y solo se exige que no sea negativo.
     valor_total: z.preprocess(
       (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
       z
@@ -125,6 +159,9 @@ const crearReservaSchema = z
         .min(0, 'El valor total no puede ser negativo')
         .nullable(),
     ),
+    // Experiencias adicionales (R4.A): desglose opcional que el formulario
+    // envía; el subtotal y el nombre los arma el servidor (un jsonb por plan).
+    extras: z.array(extraReservaSchema).max(2, 'Demasiados extras en una misma reserva').optional(),
     // Abono opcional al crear (R3.1a): llega solo si el toggle quedó activo.
     abono: abonoSchema.optional(),
   })
@@ -312,8 +349,10 @@ export async function consultarHabitacionesLibres(
 }
 
 /**
- * Crea una reserva de alojamiento confirmada. Devuelve error legible si la
- * habitación se cruzó (23P01 de la restricción de exclusión de la BD).
+ * Crea una reserva de alojamiento confirmada, con sus extras opcionales
+ * (R4.A: Balsaje/Cascadas con precio editable, guardados en reservations.extras
+ * y ya sumados al valor_total que envía el formulario). Devuelve error legible
+ * si la habitación se cruzó (23P01 de la restricción de exclusión de la BD).
  */
 export async function crearReservaAlojamiento(input: unknown): Promise<Resultado> {
   const parsed = crearReservaSchema.safeParse(input)
@@ -324,6 +363,17 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
   const { supabase, userId, email: actorEmail } = await requerirStaff(ROLES_AGENDA)
   const d = parsed.data
   const comprobante = extraerComprobante(input)
+
+  // Desglose definitivo de los extras (R4.A): nombre del servidor y subtotal
+  // recalculado aquí (personas × precio). El valor_total ya viene con los
+  // extras sumados desde el formulario — sigue siendo editable y no se toca.
+  const lineasExtras = (d.extras ?? []).map((extra) => ({
+    plan: extra.plan,
+    nombre: NOMBRES_EXTRA[extra.plan],
+    personas: extra.personas,
+    precio: extra.precio,
+    subtotal: Math.round(extra.personas * extra.precio * 100) / 100,
+  }))
 
   // Uniques de codigo pueden chocar por azar: pocos reintentos alcanzan.
   const MAX_INTENTOS = 3
@@ -344,6 +394,7 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
         telefono: d.telefono,
         estado: 'confirmada',
         valor_total: d.valor_total,
+        extras: lineasExtras,
       })
       .select('id')
       .single()
@@ -379,6 +430,7 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
           adultos: d.adultos,
           ninos: d.ninos,
           valor_total: d.valor_total,
+          extras: lineasExtras,
         },
       })
       revalidarCalendario(d.llegada)
