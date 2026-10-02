@@ -7,20 +7,27 @@ import { formatCop } from '@/core/lib/money'
 import { Badge } from '@/core/ui/badge'
 import type { PasadiaDelDia } from '../api/dia'
 import type { Resultado } from '../api/comunes'
-import { cancelarTicket, eliminarTicket } from '../api/gestion'
+import {
+  cancelarTicket,
+  deshacerLlegadaTicket,
+  eliminarTicket,
+  marcarLlegadaTicket,
+} from '../api/gestion'
 import {
   AgregarAbonoDialog,
   ComprobanteLink,
   ConfirmarDialog,
+  ControlLlegada,
   MensajeFeedback,
   type Mensaje,
 } from './gestion-ui'
 
 /**
  * Gestión de una pasadía EXISTENTE en el detalle del día (R5): desglose del
- * grupo, dinero (total/abonado/saldo destacado) y las acciones — abonar, ver
- * comprobantes, cancelar (libera el cupo) y eliminar (datos de prueba). No hay
- * edición: las pasadías no se mueven de fecha ni de plan desde aquí.
+ * grupo, dinero (total/abonado/saldo destacado) y las acciones — marcar/
+ * deshacer la llegada (check-in), abonar, ver comprobantes, cancelar (libera
+ * el cupo) y eliminar (datos de prueba). No hay edición: las pasadías no se
+ * mueven de fecha ni de plan desde aquí.
  */
 export function GestionPasadia({ pasadia }: { pasadia: PasadiaDelDia }) {
   const router = useRouter()
@@ -98,6 +105,14 @@ export function GestionPasadia({ pasadia }: { pasadia: PasadiaDelDia }) {
       </div>
 
       <div className="flex flex-wrap items-start gap-2">
+        <ControlLlegada
+          checkinAt={pasadia.checkinAt}
+          onMarcar={() => marcarLlegadaTicket({ id: pasadia.id })}
+          onDeshacer={() => deshacerLlegadaTicket({ id: pasadia.id })}
+          onResultado={(r, accion) =>
+            notificar(r, accion === 'marcar' ? 'Llegada registrada.' : 'Llegada deshecha.')
+          }
+        />
         <AgregarAbonoDialog
           destino={{ ticketId: pasadia.id }}
           codigo={pasadia.codigo}

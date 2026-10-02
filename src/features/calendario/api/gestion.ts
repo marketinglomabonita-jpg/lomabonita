@@ -12,7 +12,8 @@ import {
 
 /**
  * Gestión de reservas y pasadías EXISTENTES (R5): editar fechas/habitación,
- * cancelar por estado y eliminar de verdad (limpieza de datos de prueba).
+ * cancelar por estado, eliminar de verdad (limpieza de datos de prueba) y
+ * marcar/deshacer la llegada (check-in) del día.
  * Mismos guardas que la creación: `requerirStaff(ROLES_AGENDA)` + Zod +
  * auditoría en audit_log. El no-cruce lo sigue garantizando la BD (la
  * restricción de exclusión lanza 23P01 y aquí solo se traduce); el cupo se
@@ -276,6 +277,174 @@ export async function eliminarTicket(input: unknown): Promise<Resultado> {
 }
 
 /**
+ * Marca la llegada (check-in) de una reserva: `checkin_at` pasa de NULL al
+ * momento del click. Idempotente como cancelar: si ya estaba marcada devuelve
+ * éxito con aviso y no vuelve a auditar — el `.is(checkin_at, null)` del
+ * update garantiza que la PRIMERA marca sea la que quede (doble click seguro).
+ */
+export async function marcarLlegadaReserva(input: unknown): Promise<Resultado> {
+  const parsed = idReservaSchema.safeParse(input)
+  if (!parsed.success) return { success: false, error: primerError(parsed.error) }
+
+  const { supabase, userId, email: actorEmail } = await requerirStaff(ROLES_AGENDA)
+  const id = parsed.data.id
+  const checkinAt = new Date().toISOString()
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .update({ checkin_at: checkinAt })
+    .eq('id', id)
+    .in('estado', ['solicitada', 'confirmada'])
+    .is('checkin_at', null)
+    .select('codigo, during')
+    .maybeSingle()
+
+  if (error) return { success: false, error: `No se pudo marcar la llegada: ${error.message}` }
+  if (!data) {
+    const actual = await estadoYLlegada('reservations', supabase, id)
+    if (actual.estado === null) return { success: false, error: 'No se encontró la reserva' }
+    if (actual.checkinAt !== null) return { success: true, aviso: 'La llegada ya estaba marcada' }
+    return {
+      success: false,
+      error: `Solo se marca la llegada de reservas activas (estado actual: ${actual.estado})`,
+    }
+  }
+
+  await registrarEnAuditoria(supabase, {
+    actorId: userId,
+    actorEmail,
+    action: 'reserva.checkin',
+    entity: 'reservation',
+    entityId: data.codigo ?? id,
+    summary: { codigo: data.codigo, during: data.during, checkin_at: checkinAt },
+  })
+
+  revalidarCalendario(data.during.slice(1, 11))
+  return { success: true }
+}
+
+/**
+ * Deshace la llegada de una reserva (`checkin_at` a NULL): se marcó por error
+ * o el huésped no llegó al final. Sin filtro de estado: se puede deshacer
+ * aunque la reserva ya se haya cancelado con la marca puesta.
+ */
+export async function deshacerLlegadaReserva(input: unknown): Promise<Resultado> {
+  const parsed = idReservaSchema.safeParse(input)
+  if (!parsed.success) return { success: false, error: primerError(parsed.error) }
+
+  const { supabase, userId, email: actorEmail } = await requerirStaff(ROLES_AGENDA)
+  const id = parsed.data.id
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .update({ checkin_at: null })
+    .eq('id', id)
+    .not('checkin_at', 'is', null)
+    .select('codigo, during')
+    .maybeSingle()
+
+  if (error) return { success: false, error: `No se pudo deshacer la llegada: ${error.message}` }
+  if (!data) {
+    const actual = await estadoYLlegada('reservations', supabase, id)
+    if (actual.estado === null) return { success: false, error: 'No se encontró la reserva' }
+    return { success: true, aviso: 'La reserva ya estaba sin llegada marcada' }
+  }
+
+  await registrarEnAuditoria(supabase, {
+    actorId: userId,
+    actorEmail,
+    action: 'reserva.checkin.deshacer',
+    entity: 'reservation',
+    entityId: data.codigo ?? id,
+    summary: { codigo: data.codigo, during: data.during },
+  })
+
+  revalidarCalendario(data.during.slice(1, 11))
+  return { success: true }
+}
+
+/**
+ * Marca la llegada (check-in) de una pasadía: mismo contrato que la reserva,
+ * sobre `tickets.checkin_at` (los cancelados no llegan a marcarse).
+ */
+export async function marcarLlegadaTicket(input: unknown): Promise<Resultado> {
+  const parsed = idTicketSchema.safeParse(input)
+  if (!parsed.success) return { success: false, error: primerError(parsed.error) }
+
+  const { supabase, userId, email: actorEmail } = await requerirStaff(ROLES_AGENDA)
+  const id = parsed.data.id
+  const checkinAt = new Date().toISOString()
+
+  const { data, error } = await supabase
+    .from('tickets')
+    .update({ checkin_at: checkinAt })
+    .eq('id', id)
+    .neq('estado', 'cancelado')
+    .is('checkin_at', null)
+    .select('codigo, fecha')
+    .maybeSingle()
+
+  if (error) return { success: false, error: `No se pudo marcar la llegada: ${error.message}` }
+  if (!data) {
+    const actual = await estadoYLlegada('tickets', supabase, id)
+    if (actual.estado === null) return { success: false, error: 'No se encontró la pasadía' }
+    if (actual.checkinAt !== null) return { success: true, aviso: 'La llegada ya estaba marcada' }
+    return {
+      success: false,
+      error: `Solo se marca la llegada de pasadías activas (estado actual: ${actual.estado})`,
+    }
+  }
+
+  await registrarEnAuditoria(supabase, {
+    actorId: userId,
+    actorEmail,
+    action: 'pasadia.checkin',
+    entity: 'ticket',
+    entityId: data.codigo ?? id,
+    summary: { codigo: data.codigo, fecha: data.fecha, checkin_at: checkinAt },
+  })
+
+  revalidarCalendario(data.fecha)
+  return { success: true }
+}
+
+/** Deshace la llegada de una pasadía (`tickets.checkin_at` a NULL). */
+export async function deshacerLlegadaTicket(input: unknown): Promise<Resultado> {
+  const parsed = idTicketSchema.safeParse(input)
+  if (!parsed.success) return { success: false, error: primerError(parsed.error) }
+
+  const { supabase, userId, email: actorEmail } = await requerirStaff(ROLES_AGENDA)
+  const id = parsed.data.id
+
+  const { data, error } = await supabase
+    .from('tickets')
+    .update({ checkin_at: null })
+    .eq('id', id)
+    .not('checkin_at', 'is', null)
+    .select('codigo, fecha')
+    .maybeSingle()
+
+  if (error) return { success: false, error: `No se pudo deshacer la llegada: ${error.message}` }
+  if (!data) {
+    const actual = await estadoYLlegada('tickets', supabase, id)
+    if (actual.estado === null) return { success: false, error: 'No se encontró la pasadía' }
+    return { success: true, aviso: 'La pasadía ya estaba sin llegada marcada' }
+  }
+
+  await registrarEnAuditoria(supabase, {
+    actorId: userId,
+    actorEmail,
+    action: 'pasadia.checkin.deshacer',
+    entity: 'ticket',
+    entityId: data.codigo ?? id,
+    summary: { codigo: data.codigo, fecha: data.fecha },
+  })
+
+  revalidarCalendario(data.fecha)
+  return { success: true }
+}
+
+/**
  * Desambigua un update sin filas: relee sin el filtro de estado y devuelve el
  * estado real (null si la fila no existe), para que quien llama distinga
  * "ya estaba cerrada" (éxito con aviso, sin auditar de nuevo) de "no existe".
@@ -287,4 +456,23 @@ async function estadoActual(
 ): Promise<string | null> {
   const { data } = await supabase.from(tabla).select('estado').eq('id', id).maybeSingle()
   return data?.estado ?? null
+}
+
+/**
+ * Desambigua un update de check-in sin filas: relee sin filtros y devuelve el
+ * estado y la llegada real (null el estado si la fila no existe), para que
+ * quien llama distinga "ya estaba marcada/desmarcada" (éxito con aviso, sin
+ * auditar de nuevo) de "inactiva" o "no existe" (error).
+ */
+async function estadoYLlegada(
+  tabla: 'reservations' | 'tickets',
+  supabase: Awaited<ReturnType<typeof requerirStaff>>['supabase'],
+  id: string,
+): Promise<{ estado: string | null; checkinAt: string | null }> {
+  const { data } = await supabase
+    .from(tabla)
+    .select('estado, checkin_at')
+    .eq('id', id)
+    .maybeSingle()
+  return { estado: data?.estado ?? null, checkinAt: data?.checkin_at ?? null }
 }

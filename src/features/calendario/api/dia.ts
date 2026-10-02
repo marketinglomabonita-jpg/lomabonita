@@ -32,6 +32,8 @@ export type ReservaDelDia = {
   abonado: number
   /** valor_total − abonado; null mientras el valor siga "por definir". */
   saldo: number | null
+  /** Momento del check-in (llegada real) en ISO; null si aún no ha llegado. */
+  checkinAt: string | null
   /** Rutas de comprobantes subidos (la URL firmada la pide urlComprobante). */
   comprobantes: string[]
 }
@@ -99,6 +101,8 @@ export type PasadiaDelDia = {
   abonado: number
   /** total − abonado; null si el ticket no tiene total definido. */
   saldo: number | null
+  /** Momento del check-in (llegada real) en ISO; null si aún no ha llegado. */
+  checkinAt: string | null
   /** Rutas de comprobantes subidos (la URL firmada la pide urlComprobante). */
   comprobantes: string[]
 }
@@ -284,12 +288,12 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
       .order('numero'),
     supabase
       .from('reservations')
-      .select('id, codigo, room_id, nombre, telefono, email, estado, during, valor_total')
+      .select('id, codigo, room_id, nombre, telefono, email, estado, during, valor_total, checkin_at')
       .in('estado', ['solicitada', 'confirmada'])
       .overlaps('during', `[${fecha},${diaSiguiente(fecha)})`),
     supabase
       .from('tickets')
-      .select('id, codigo, nombre, telefono, email, estado, personas, total_muestra, lineas')
+      .select('id, codigo, nombre, telefono, email, estado, personas, total_muestra, lineas, checkin_at')
       .eq('fecha', fecha)
       .neq('estado', 'cancelado')
       .order('created_at'),
@@ -311,6 +315,7 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
     estado: string
     during: string
     valor_total: number | string | null
+    checkin_at: string | null
   }>
   const crudasTickets = (tickets.data ?? []) as Array<{
     id: string
@@ -322,6 +327,7 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
     personas: number
     total_muestra: number | string | null
     lineas: unknown
+    checkin_at: string | null
   }>
 
   // Abonos y comprobantes de todos los destinos del día, agrupados por id.
@@ -348,6 +354,7 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
       valor_total: valorTotal,
       abonado: abonos.abonado,
       saldo: valorTotal === null ? null : redondear2(valorTotal - abonos.abonado),
+      checkinAt: r.checkin_at ?? null,
       comprobantes: abonos.comprobantes,
     }
   }
@@ -389,6 +396,7 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
         t.total_muestra === null
           ? null
           : redondear2(Number(t.total_muestra) - abonos.abonado),
+      checkinAt: t.checkin_at ?? null,
       comprobantes: abonos.comprobantes,
     }
   })

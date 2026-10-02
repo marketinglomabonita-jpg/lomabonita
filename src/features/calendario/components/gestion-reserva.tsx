@@ -18,11 +18,18 @@ import {
 import { consultarHabitacionesLibres } from '../api/acciones'
 import type { HabitacionLibre, ReservaDelDia } from '../api/dia'
 import type { Resultado } from '../api/comunes'
-import { cancelarReserva, editarReserva, eliminarReserva } from '../api/gestion'
+import {
+  cancelarReserva,
+  deshacerLlegadaReserva,
+  editarReserva,
+  eliminarReserva,
+  marcarLlegadaReserva,
+} from '../api/gestion'
 import {
   AgregarAbonoDialog,
   ComprobanteLink,
   ConfirmarDialog,
+  ControlLlegada,
   MensajeFeedback,
   type Mensaje,
 } from './gestion-ui'
@@ -30,8 +37,9 @@ import {
 /**
  * Gestión de una reserva de alojamiento EXISTENTE en el detalle del día (R5):
  * contacto, dinero (total/abonado/saldo, el saldo salta a la vista) y las
- * acciones — abonar, ver comprobantes, editar fechas/habitación, cancelar y
- * eliminar. Toda escritura pasa por las server actions de api/gestion.ts.
+ * acciones — marcar/deshacer la llegada (check-in), abonar, ver comprobantes,
+ * editar fechas/habitación, cancelar y eliminar. Toda escritura pasa por las
+ * server actions de api/gestion.ts.
  */
 
 type Props = {
@@ -145,6 +153,14 @@ export function GestionReserva({ reserva, habitacionActual, fecha }: Props) {
       </div>
 
       <div className="flex flex-wrap items-start gap-2">
+        <ControlLlegada
+          checkinAt={reserva.checkinAt}
+          onMarcar={() => marcarLlegadaReserva({ id: reserva.id })}
+          onDeshacer={() => deshacerLlegadaReserva({ id: reserva.id })}
+          onResultado={(r, accion) =>
+            notificar(r, accion === 'marcar' ? 'Llegada registrada.' : 'Llegada deshecha.')
+          }
+        />
         <AgregarAbonoDialog
           destino={{ reservationId: reserva.id }}
           codigo={reserva.codigo ?? 'reserva'}

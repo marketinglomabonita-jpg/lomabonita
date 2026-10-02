@@ -1,8 +1,9 @@
 'use client'
 
 import { useId, useState } from 'react'
-import { Banknote, FileText } from 'lucide-react'
+import { Banknote, Check, FileText, LogIn, Undo2 } from 'lucide-react'
 import { formatCop } from '@/core/lib/money'
+import { Badge } from '@/core/ui/badge'
 import { Button } from '@/core/ui/button'
 import {
   Dialog,
@@ -18,9 +19,10 @@ import type { Resultado } from '../api/comunes'
 
 /**
  * Piezas compartidas por la gestión de reservas y pasadías existentes (R5):
- * caja de feedback, enlace a comprobante por URL firmada, popup de abono y
- * popup de confirmación (con modo "fuerte" para el eliminar definitivo).
- * Toda escritura pasa por las server actions; aquí solo se orquesta la UI.
+ * caja de feedback, enlace a comprobante por URL firmada, control de llegada
+ * (check-in), popup de abono y popup de confirmación (con modo "fuerte" para
+ * el eliminar definitivo). Toda escritura pasa por las server actions; aquí
+ * solo se orquesta la UI.
  */
 
 /** Mensaje uniforme de las acciones de gestión (mismo patrón que los formularios de crear). */
@@ -85,6 +87,94 @@ export function ComprobanteLink({ path, indice }: { path: string; indice: number
           No se pudo abrir el comprobante
         </span>
       )}
+    </span>
+  )
+}
+
+/** Hora local del check-in ("03:47 p. m."); con día y mes si no fue hoy. */
+function momentoLlegadaLegible(checkinAt: string): string {
+  const momento = new Date(checkinAt)
+  if (Number.isNaN(momento.getTime())) return ''
+  const hoy = new Date()
+  const esHoy =
+    momento.getFullYear() === hoy.getFullYear() &&
+    momento.getMonth() === hoy.getMonth() &&
+    momento.getDate() === hoy.getDate()
+  return esHoy
+    ? momento.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+    : momento.toLocaleString('es-CO', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+}
+
+/**
+ * Control de llegada (check-in) compartido por reservas y pasadías: si nadie
+ * ha llegado, un botón «Marcar llegada» relleno — estado operativo del día,
+ * distinto de las acciones de dinero que van en outline. Si ya llegó, el
+ * badge verde «Llegó» con la hora y un «Deshacer llegada» discreto para
+ * revertir una marca puesta por error. Las server actions llegan como
+ * callbacks (la reserva o la pasadía saben cuál es la suya) y el resultado
+ * sube por `onResultado` al MensajeFeedback de la tarjeta, que refresca.
+ */
+export function ControlLlegada({
+  checkinAt,
+  onMarcar,
+  onDeshacer,
+  onResultado,
+}: {
+  /** Momento ISO de la llegada real; null si aún no ha llegado. */
+  checkinAt: string | null
+  onMarcar: () => Promise<Resultado>
+  onDeshacer: () => Promise<Resultado>
+  onResultado: (resultado: Resultado, accion: 'marcar' | 'deshacer') => void
+}) {
+  const [ocupado, setOcupado] = useState(false)
+
+  const ejecutar = async (accion: 'marcar' | 'deshacer') => {
+    if (ocupado) return
+    setOcupado(true)
+    try {
+      onResultado(accion === 'marcar' ? await onMarcar() : await onDeshacer(), accion)
+    } catch (e) {
+      onResultado(
+        { success: false, error: e instanceof Error ? e.message : 'Error inesperado' },
+        accion,
+      )
+    } finally {
+      setOcupado(false)
+    }
+  }
+
+  if (checkinAt === null) {
+    return (
+      <Button type="button" size="sm" onClick={() => ejecutar('marcar')} disabled={ocupado}>
+        <LogIn aria-hidden />
+        {ocupado ? 'Marcando…' : 'Marcar llegada'}
+      </Button>
+    )
+  }
+
+  const hora = momentoLlegadaLegible(checkinAt)
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Badge className="bg-green-100 text-green-800">
+        <Check aria-hidden className="mr-1 size-3.5" />
+        Llegó{hora && ` · ${hora}`}
+      </Badge>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="text-muted-foreground"
+        onClick={() => ejecutar('deshacer')}
+        disabled={ocupado}
+      >
+        <Undo2 aria-hidden />
+        {ocupado ? 'Deshaciendo…' : 'Deshacer llegada'}
+      </Button>
     </span>
   )
 }

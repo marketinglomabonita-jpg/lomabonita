@@ -5,7 +5,7 @@ import { createClient } from '@/core/adapters/supabase/server'
  * pass_capacity. Desde la migración 0020_panel_datos_reales.sql el default
  * documentado es 100 (antes era 60 en la migración 0009).
  */
-export const CUPO_DEFAULT_PASADIA = 100
+export const CUPO_DEFAULT_PASADIA = 120
 
 /** Panorama de ocupación de un día del mes, para la vista Mes del calendario. */
 export type DiaOcupacion = {
