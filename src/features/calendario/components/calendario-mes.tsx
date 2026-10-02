@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useRef, type TouchEvent } from 'react'
 import type { DiaOcupacion } from '../api/queries'
 import { useDiaModal } from './dia-modal'
 
@@ -21,6 +23,9 @@ const MESES_ES = [
 
 /** Semana de lunes a domingo. */
 const DIAS_SEMANA = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+
+/** Distancia mínima (px) del arrastre para considerarlo un cambio de mes. */
+const UMBRAL_SWIPE = 50
 
 /** YYYY-MM desplazado delta meses (maneja el relevo de año). */
 function mesDesplazado(mes: string, delta: number): string {
@@ -78,27 +83,66 @@ export function CalendarioMes({ mes, dias, hoy }: { mes: string; dias: DiaOcupac
   // R3.1a: el clic en un día ya no navega a /admin/calendario/dia/[fecha]:
   // abre el popup del día (resumen + reservar hospedaje/pasadía dentro).
   const { abrir } = useDiaModal()
+  const router = useRouter()
+  const inicioToque = useRef<{ x: number; y: number } | null>(null)
+
+  /** Swipe horizontal en móvil: izquierda → mes siguiente, derecha → mes anterior. */
+  function alIniciarToque(e: TouchEvent<HTMLDivElement>) {
+    const t = e.touches[0]
+    inicioToque.current = { x: t.clientX, y: t.clientY }
+  }
+
+  /**
+   * Evalúa el arrastre al soltar el dedo: exige distancia mínima Y que el
+   * movimiento sea predominantemente horizontal, para no confundir el gesto
+   * con el scroll vertical de la página ni con el tap que abre un día.
+   * Sin preventDefault: el scroll vertical queda 100% nativo.
+   */
+  function alTerminarToque(e: TouchEvent<HTMLDivElement>) {
+    const inicio = inicioToque.current
+    inicioToque.current = null
+    if (!inicio) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - inicio.x
+    const dy = t.clientY - inicio.y
+    if (Math.abs(dx) < UMBRAL_SWIPE || Math.abs(dx) < Math.abs(dy) * 1.5) return
+    router.push(`/admin/calendario?mes=${mesDesplazado(mes, dx < 0 ? 1 : -1)}`)
+  }
+
+  function descartarToque() {
+    inicioToque.current = null
+  }
 
   return (
-    <div className="space-y-3">
-      {/* Cabecera: mes + navegación */}
+    <div
+      className="space-y-3"
+      onTouchStart={alIniciarToque}
+      onTouchEnd={alTerminarToque}
+      onTouchCancel={descartarToque}
+    >
+      {/* Cabecera: mes + navegación (botones táctiles de 44px) */}
       <div className="flex items-center justify-between gap-2">
         <Link
           href={`/admin/calendario?mes=${mesDesplazado(mes, -1)}`}
           aria-label="Mes anterior"
-          className="shrink-0 rounded-md border bg-card px-2 py-1.5 text-sm hover:bg-muted sm:px-3"
+          className="flex h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border bg-card px-3 text-2xl leading-none hover:bg-muted active:bg-muted"
         >
-          ‹ <span className="hidden capitalize sm:inline">{tituloDe(mesDesplazado(mes, -1))}</span>
+          ‹ <span className="hidden text-sm capitalize sm:inline">{tituloDe(mesDesplazado(mes, -1))}</span>
         </Link>
         <h2 className="text-center text-lg font-medium capitalize">{tituloDe(mes)}</h2>
         <Link
           href={`/admin/calendario?mes=${mesDesplazado(mes, 1)}`}
           aria-label="Mes siguiente"
-          className="shrink-0 rounded-md border bg-card px-2 py-1.5 text-sm hover:bg-muted sm:px-3"
+          className="flex h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border bg-card px-3 text-2xl leading-none hover:bg-muted active:bg-muted"
         >
-          <span className="hidden capitalize sm:inline">{tituloDe(mesDesplazado(mes, 1))}</span> ›
+          <span className="hidden text-sm capitalize sm:inline">{tituloDe(mesDesplazado(mes, 1))}</span> ›
         </Link>
       </div>
+
+      {/* Pista sutil (solo móvil) de que el calendario se puede deslizar */}
+      <p className="text-center text-[10px] text-muted-foreground sm:hidden">
+        ‹ desliza para cambiar de mes ›
+      </p>
 
       {/* Rejilla del mes (7 columnas, lunes a domingo) */}
       <div className="grid grid-cols-7 gap-0.5 sm:gap-1">

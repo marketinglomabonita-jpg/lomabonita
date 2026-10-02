@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getClientes } from '@/features/clientes/api/queries'
+import { GestionCliente } from '@/features/clientes/components/gestion-cliente'
 
 export const metadata: Metadata = {
   title: 'Clientes · Panel · Loma Bonita',
@@ -27,7 +28,12 @@ function fechaLegible(fecha: string): string {
   return `${dia} de ${MESES_ES[mes - 1]} de ${anio}`
 }
 
-/** Página de solo lectura: la consolidación vive en features/clientes/api/queries.ts. */
+/**
+ * Directorio consolidado (Server Component): la consolidación vive en
+ * features/clientes/api/queries.ts y la gestión de cada cliente — corregir o
+ * suprimir (Habeas Data, Ley 1581 de 2012) — en el client component
+ * gestion-cliente.tsx vía las server actions de api/actions.ts.
+ */
 export default async function AdminClientesPage() {
   const clientes = await getClientes()
 
@@ -60,6 +66,7 @@ export default async function AdminClientesPage() {
                 <th className="px-4 py-3 text-right font-medium">Hospedajes</th>
                 <th className="px-4 py-3 text-right font-medium">Pasadías</th>
                 <th className="px-4 py-3 text-left font-medium">Última actividad</th>
+                <th className="px-4 py-3 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -72,6 +79,9 @@ export default async function AdminClientesPage() {
                   <td className="px-4 py-3 text-right tabular-nums">{cliente.pasadias}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                     {fechaLegible(cliente.ultimaActividad)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <GestionCliente cliente={cliente} />
                   </td>
                 </tr>
               ))}

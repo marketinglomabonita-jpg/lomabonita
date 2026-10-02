@@ -24,7 +24,7 @@ export type Cliente = {
 }
 
 /** Contacto mínimo que comparten reservations y tickets. */
-type FilaContacto = {
+export type FilaContacto = {
   nombre: string | null
   telefono: string | null
   email: string | null
@@ -38,7 +38,7 @@ type Acumulado = Omit<Cliente, 'ultimaActividad'> & {
 }
 
 /** Texto comparable: minúsculas, espacios colapsados y sin bordes vacíos. */
-function normalizarTexto(valor: string | null): string {
+export function normalizarTexto(valor: string | null): string {
   return (valor ?? '').toLowerCase().replace(/\s+/g, ' ').trim()
 }
 
@@ -46,7 +46,7 @@ function normalizarTexto(valor: string | null): string {
  * Teléfono a dígitos, retirando el indicativo colombiano si vino completo:
  * "+57 311 111 1111" y "3111111111" deben agrupar al mismo cliente.
  */
-function normalizarTelefono(valor: string | null): string {
+export function normalizarTelefono(valor: string | null): string {
   const digitos = (valor ?? '').replace(/\D/g, '')
   if (digitos.length === 12 && digitos.startsWith('57')) return digitos.slice(2)
   return digitos
@@ -57,7 +57,7 @@ function normalizarTelefono(valor: string | null): string {
  * si no, teléfono normalizado; si no, nombre en minúsculas. El prefijo evita
  * colisiones entre espacios (un teléfono "311…" nunca choca con "311…@…").
  */
-function claveDe(fila: FilaContacto): string {
+export function claveDe(fila: FilaContacto): string {
   const email = normalizarTexto(fila.email)
   if (email) return `email:${email}`
   const telefono = normalizarTelefono(fila.telefono)
@@ -125,4 +125,37 @@ export async function getClientes(): Promise<Cliente[]> {
       pasadias,
       ultimaActividad: fechaColombia(ultima),
     }))
+}
+
+/**
+ * Filas (con su id) de las reservas y tickets que pertenecen a un cliente,
+ * re-derivando la clave de cada fila con la MISMA lógica de `getClientes`:
+ * editar o eliminar actúa exactamente sobre el grupo que el panel mostró.
+ * Orden cronológico ascendente como allí (el contacto más reciente pisa al
+ * viejo), para que quien llame pueda derivar el contacto vigente del grupo.
+ */
+export async function filasDeCliente(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clave: string,
+): Promise<{
+  reservas: (FilaContacto & { id: string })[]
+  tickets: (FilaContacto & { id: string })[]
+}> {
+  const [reservas, tickets] = await Promise.all([
+    supabase.from('reservations').select('id, nombre, telefono, email, created_at'),
+    supabase.from('tickets').select('id, nombre, telefono, email, created_at'),
+  ])
+
+  if (reservas.error) throw new Error(`Error al listar reservas: ${reservas.error.message}`)
+  if (tickets.error) throw new Error(`Error al listar tickets: ${tickets.error.message}`)
+
+  const delCliente = (filas: (FilaContacto & { id: string })[]) =>
+    filas
+      .filter((fila) => claveDe(fila) === clave)
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+
+  return {
+    reservas: delCliente((reservas.data ?? []) as (FilaContacto & { id: string })[]),
+    tickets: delCliente((tickets.data ?? []) as (FilaContacto & { id: string })[]),
+  }
 }
