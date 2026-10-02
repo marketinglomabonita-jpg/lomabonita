@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { z } from 'zod'
+import { getPlanesPasadia } from '@/features/calendario/api/dia'
 import { getOcupacionMes, hoyColombia } from '@/features/calendario/api/queries'
 import { CalendarioMes } from '@/features/calendario/components/calendario-mes'
+import { DiaModalProvider } from '@/features/calendario/components/dia-modal'
 
 export const metadata: Metadata = {
   title: 'Calendario · Panel · Loma Bonita',
@@ -26,7 +28,8 @@ export default async function AdminCalendarioPage({
   const mesISO = parsed.success ? parsed.data : hoy.slice(0, 7)
   const [anio, mes] = mesISO.split('-').map(Number)
 
-  const dias = await getOcupacionMes(anio, mes)
+  // Los planes alimentan el form de pasadía dentro del popup del día.
+  const [dias, planes] = await Promise.all([getOcupacionMes(anio, mes), getPlanesPasadia()])
 
   return (
     <div className="space-y-6">
@@ -37,7 +40,9 @@ export default async function AdminCalendarioPage({
         </p>
       </div>
 
-      <CalendarioMes mes={mesISO} dias={dias} hoy={hoy} />
+      <DiaModalProvider planes={planes}>
+        <CalendarioMes mes={mesISO} dias={dias} hoy={hoy} />
+      </DiaModalProvider>
     </div>
   )
 }

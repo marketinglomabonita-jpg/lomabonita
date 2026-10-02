@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import type { DiaOcupacion } from '../api/queries'
+import { useDiaModal } from './dia-modal'
 
 const MESES_ES = [
   'enero',
@@ -69,6 +70,10 @@ function presionDe(dia: DiaOcupacion): Presion {
 }
 
 export function CalendarioMes({ mes, dias, hoy }: { mes: string; dias: DiaOcupacion[]; hoy: string }) {
+  // R3.1a: el clic en un día ya no navega a /admin/calendario/dia/[fecha]:
+  // abre el popup del día (resumen + reservar hospedaje/pasadía dentro).
+  const { abrir } = useDiaModal()
+
   return (
     <div className="space-y-3">
       {/* Cabecera: mes + navegación */}
@@ -112,11 +117,12 @@ export function CalendarioMes({ mes, dias, hoy }: { mes: string; dias: DiaOcupac
         {dias.map((dia) => {
           const esHoy = dia.fecha === hoy
           return (
-            <Link
+            <button
               key={dia.fecha}
-              href={`/admin/calendario/dia/${dia.fecha}`}
-              aria-label={`Día ${dia.fecha}: ${dia.roomsOcupadas} de ${dia.totalRooms} habitaciones ocupadas, ${dia.pasadiaPersonas} de ${dia.cupo} personas de pasadía`}
-              className={`flex min-h-[52px] min-w-0 flex-col justify-between overflow-hidden rounded-md border p-1 sm:min-h-[72px] ${CLASES_PRESION[presionDe(dia)]} ${
+              type="button"
+              onClick={() => abrir(dia)}
+              aria-label={`Día ${dia.fecha}: ${dia.roomsOcupadas} de ${dia.totalRooms} habitaciones ocupadas, ${dia.pasadiaPersonas} de ${dia.cupo} personas de pasadía. Abrir para reservar`}
+              className={`flex min-h-[52px] min-w-0 cursor-pointer flex-col justify-between overflow-hidden rounded-md border p-1 text-left sm:min-h-[72px] ${CLASES_PRESION[presionDe(dia)]} ${
                 esHoy ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''
               }`}
             >
@@ -129,7 +135,7 @@ export function CalendarioMes({ mes, dias, hoy }: { mes: string; dias: DiaOcupac
               <span className="whitespace-nowrap text-[9px] leading-tight tracking-tight tabular-nums sm:text-[11px]">
                 🎟 {dia.pasadiaPersonas}/{dia.cupo}
               </span>
-            </Link>
+            </button>
           )
         })}
       </div>

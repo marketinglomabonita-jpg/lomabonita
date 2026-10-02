@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/core/ui/select'
 import { crearPasadia } from '../api/acciones'
+import { AbonoFields } from './abono-fields'
 
 export type PlanPasadia = {
   slug: string
@@ -20,20 +21,24 @@ export type PlanPasadia = {
 }
 
 type Props = {
-  /** Día de la pasadía (YYYY-MM-DD), fijo: es el día visto en la página. */
+  /** Día de la pasadía (YYYY-MM-DD): el día abierto en el calendario. */
   fecha: string
   /** Planes reales (is_sample = false) con su precio por persona. */
   planes: PlanPasadia[]
+  /** Cierra el popup tras emitir con éxito (vivo dentro del modal del día). */
+  onDone?: () => void
 }
 
 type Mensaje = { tipo: 'ok' | 'error'; texto: string }
 
 /**
- * Formulario de pasadía desde el día del calendario. El cupo lo garantiza el
- * trigger de la BD: si se supera, la action traduce CUPO_AGOTADO (P0001) al
- * mensaje visible y aquí solo se muestra lo que quedó.
+ * Formulario de pasadía: vive dentro del popup del día (R3.1a) o embebido en
+ * la página del día. El cupo lo garantiza el trigger de la BD: si se supera,
+ * la action traduce CUPO_AGOTADO (P0001) al mensaje visible. El total se
+ * calcula por personas × precio del plan y alimenta el saldo en vivo de la
+ * sección de Abono; sin plan elegido el saldo queda "por definir".
  */
-export function CrearPasadiaForm({ fecha, planes }: Props) {
+export function CrearPasadiaForm({ fecha, planes, onDone }: Props) {
   const router = useRouter()
 
   const [plan, setPlan] = useState('')
@@ -46,27 +51,45 @@ export function CrearPasadiaForm({ fecha, planes }: Props) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+    // Referencia capturada ANTES del await: React anula e.currentTarget
+    // después del despacho del evento, y el reset final la necesita.
+    const form = e.currentTarget
+    const formData = new FormData(form)
 
     setOcupado(true)
     setMensaje(null)
 
     try {
+      // Abono opcional (R3.1a): mismo contrato que en el form de reserva.
+      const abono = formData.get('abono_habilitado')
+        ? {
+            monto: formData.get('abono_monto'),
+            medio: formData.get('abono_medio'),
+          }
+        : undefined
+
       const resultado = await crearPasadia({
         fecha,
         plan,
         personas: formData.get('personas'),
         nombre: formData.get('nombre'),
         telefono: formData.get('telefono'),
+        abono,
       })
 
       if (resultado.success) {
-        setMensaje({ tipo: 'ok', texto: 'Pasadía emitida.' })
-        e.currentTarget.reset()
-        setPlan('')
-        setPersonas(1)
-        // La página relee el cupo restante y la lista del día.
         router.refresh()
+        if (resultado.aviso) {
+          // Éxito parcial: el ticket existe pero el abono no se registró.
+          // El popup queda abierto para que el aviso se lea.
+          setMensaje({ tipo: 'ok', texto: resultado.aviso })
+        } else {
+          setMensaje({ tipo: 'ok', texto: 'Pasadía emitida.' })
+          form.reset()
+          setPlan('')
+          setPersonas(1)
+          onDone?.()
+        }
       } else {
         setMensaje({ tipo: 'error', texto: resultado.error })
         router.refresh()
@@ -160,6 +183,8 @@ export function CrearPasadiaForm({ fecha, planes }: Props) {
           />
         </div>
       </div>
+
+      <AbonoFields valorTotal={totalEstimado} />
 
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
