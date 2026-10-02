@@ -3,7 +3,52 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/core/adapters/supabase/server'
+import { createAdminClient } from '@/core/adapters/supabase/admin'
 import { esFechaISOValida, habitacionesLibres, type HabitacionLibre } from './dia'
+
+/** Comprobante de pago: imagen o PDF, máximo 5 MB. Guardado en bucket privado. */
+const COMPROBANTE_TIPOS = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+const COMPROBANTE_MAX_BYTES = 5 * 1024 * 1024
+
+/** Extrae el File del comprobante del input crudo (antes de Zod, que lo descarta). */
+function extraerComprobante(input: unknown): File | null {
+  const posible = (input as { abono?: { comprobante?: unknown } })?.abono?.comprobante
+  return posible instanceof File && posible.size > 0 ? posible : null
+}
+
+/**
+ * Sube el comprobante al bucket privado 'comprobantes' con service-role (tras
+ * revalidar staff en quien llama). Devuelve la ruta guardada o un mensaje de error.
+ * El bucket es privado: se ve solo por URL firmada (urlComprobante).
+ */
+async function subirComprobante(
+  file: File,
+  codigoDestino: string,
+): Promise<{ path?: string; error?: string }> {
+  if (!COMPROBANTE_TIPOS.includes(file.type)) {
+    return { error: 'El comprobante debe ser imagen (JPG/PNG/WEBP) o PDF' }
+  }
+  if (file.size > COMPROBANTE_MAX_BYTES) {
+    return { error: 'El comprobante supera el máximo de 5 MB' }
+  }
+  const ext = (file.name.split('.').pop() ?? 'bin').toLowerCase().replace(/[^a-z0-9]/g, '')
+  const path = `${codigoDestino}/${Date.now()}.${ext}`
+  const admin = createAdminClient()
+  const { error } = await admin.storage
+    .from('comprobantes')
+    .upload(path, file, { contentType: file.type, upsert: false })
+  if (error) return { error: `No se pudo subir el comprobante: ${error.message}` }
+  return { path }
+}
+
+/** URL firmada (temporal) para ver un comprobante privado. Solo staff. */
+export async function urlComprobante(path: unknown): Promise<string | null> {
+  if (typeof path !== 'string' || path.trim() === '') return null
+  await requerirStaff(ROLES_AGENDA)
+  const admin = createAdminClient()
+  const { data } = await admin.storage.from('comprobantes').createSignedUrl(path, 120)
+  return data?.signedUrl ?? null
+}
 
 /**
  * Creación desde el día del calendario (R3): reservas de alojamiento y
@@ -182,12 +227,22 @@ async function insertarAbonoYAuditar(
   actor: { id: string; email: string },
   destino: { reservationId?: string; ticketId?: string; codigo: string },
   abono: { monto: number; medio: string },
+  comprobante?: File | null,
 ): Promise<string | null> {
+  // Comprobante opcional: se sube primero para guardar su ruta en el pago.
+  let comprobantePath: string | null = null
+  if (comprobante) {
+    const subida = await subirComprobante(comprobante, destino.codigo)
+    if (subida.error) return subida.error
+    comprobantePath = subida.path ?? null
+  }
+
   const { error } = await supabase.from('payments').insert({
     reservation_id: destino.reservationId ?? null,
     ticket_id: destino.ticketId ?? null,
     monto: abono.monto,
     medio: abono.medio,
+    comprobante_path: comprobantePath,
     actor_id: actor.id,
     actor_email: actor.email,
   })
@@ -205,6 +260,7 @@ async function insertarAbonoYAuditar(
       codigo_destino: destino.codigo,
       monto: abono.monto,
       medio: abono.medio,
+      con_comprobante: Boolean(comprobantePath),
     },
   })
 
@@ -246,6 +302,7 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
 
   const { supabase, userId, email: actorEmail } = await requerirStaff(ROLES_AGENDA)
   const d = parsed.data
+  const comprobante = extraerComprobante(input)
 
   // Uniques de codigo pueden chocar por azar: pocos reintentos alcanzan.
   const MAX_INTENTOS = 3
@@ -280,6 +337,7 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
           { id: userId, email: actorEmail },
           { reservationId: creada.id, codigo },
           d.abono,
+          comprobante,
         )
         if (falloAbono) {
           aviso = `La reserva se creó, pero no se pudo registrar el abono: ${falloAbono}`
@@ -336,6 +394,7 @@ export async function crearPasadia(input: unknown): Promise<Resultado> {
 
   const { supabase, userId, email: actorEmail } = await requerirStaff(ROLES_AGENDA)
   const d = parsed.data
+  const comprobante = extraerComprobante(input)
 
   const { data: plan, error: errorPlan } = await supabase
     .from('pass_products')
@@ -382,6 +441,7 @@ export async function crearPasadia(input: unknown): Promise<Resultado> {
           { id: userId, email: actorEmail },
           { ticketId: emitido.id, codigo },
           d.abono,
+          comprobante,
         )
         if (falloAbono) {
           aviso = `La pasadía se emitió, pero no se pudo registrar el abono: ${falloAbono}`

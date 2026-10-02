@@ -65,6 +65,7 @@ export function CrearPasadiaForm({ fecha, planes, onDone }: Props) {
         ? {
             monto: formData.get('abono_monto'),
             medio: formData.get('abono_medio'),
+            comprobante: formData.get('abono_comprobante'),
           }
         : undefined
 

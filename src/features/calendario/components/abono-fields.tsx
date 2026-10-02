@@ -92,6 +92,22 @@ export function AbonoFields({ valorTotal }: Props) {
             </select>
           </div>
 
+          <div>
+            <label htmlFor="abono-comprobante" className="text-sm font-medium">
+              Comprobante (opcional)
+            </label>
+            <input
+              id="abono-comprobante"
+              type="file"
+              name="abono_comprobante"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-muted file:px-2 file:py-1"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Imagen o PDF, máximo 5 MB. Se guarda en privado; solo el equipo lo ve.
+            </p>
+          </div>
+
           <p aria-live="polite" className="rounded-md bg-muted/50 p-2 text-sm">
             {total === null ? (
               'Saldo: por definir (sin valor total)'
