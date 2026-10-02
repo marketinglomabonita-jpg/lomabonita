@@ -22,9 +22,14 @@ import {
 const COMPROBANTE_TIPOS = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 const COMPROBANTE_MAX_BYTES = 5 * 1024 * 1024
 
-/** Extrae el File del comprobante del input crudo (antes de Zod, que lo descarta). */
+/**
+ * Extrae el File del comprobante del input crudo (antes de Zod, que lo descarta).
+ * Lo busca anidado en `abono.comprobante` (flujo de crear) y también a nivel
+ * raíz en `comprobante` (flujo de abono sobre reserva/pasadía existente).
+ */
 function extraerComprobante(input: unknown): File | null {
-  const posible = (input as { abono?: { comprobante?: unknown } })?.abono?.comprobante
+  const obj = input as { comprobante?: unknown; abono?: { comprobante?: unknown } }
+  const posible = obj?.abono?.comprobante ?? obj?.comprobante
   return posible instanceof File && posible.size > 0 ? posible : null
 }
 
@@ -578,12 +583,14 @@ export async function registrarAbono(input: unknown): Promise<Resultado> {
   }
 
   const abono = { monto: d.monto, medio: d.medio }
+  const comprobante = extraerComprobante(input)
   const fallo = d.reservationId
     ? await insertarAbonoYAuditar(
         supabase,
         { id: userId, email: actorEmail },
         { reservationId: d.reservationId, codigo: codigoDestino },
         abono,
+        comprobante,
       )
     : d.ticketId
       ? await insertarAbonoYAuditar(
@@ -591,6 +598,7 @@ export async function registrarAbono(input: unknown): Promise<Resultado> {
           { id: userId, email: actorEmail },
           { ticketId: d.ticketId, codigo: codigoDestino },
           abono,
+          comprobante,
         )
       : 'Falta el destino del abono' // inalcanzable: el refine lo garantiza
 

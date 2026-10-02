@@ -104,10 +104,10 @@ const soltarFocoEnRueda = (e: React.WheelEvent<HTMLInputElement>) => e.currentTa
 export type DestinoAbono = { reservationId: string } | { ticketId: string }
 
 /**
- * Popup "Agregar abono" para una reserva o pasadía EXISTENTE: monto + medio y
- * el saldo que quedaría, en vivo. A diferencia del AbonoFields de los
- * formularios de crear, aquí no hay toggle ni comprobante: registrarAbono
- * solo acepta monto y medio (el comprobante se adjunta al crear).
+ * Popup "Agregar abono" para una reserva o pasadía EXISTENTE: monto + medio,
+ * comprobante opcional y el saldo que quedaría, en vivo. El comprobante viaja
+ * como File a registrarAbono, que lo sube al bucket privado (misma ruta que el
+ * abono al crear).
  */
 export function AgregarAbonoDialog({
   destino,
@@ -124,9 +124,11 @@ export function AgregarAbonoDialog({
 }) {
   const idMonto = useId()
   const idMedio = useId()
+  const idComprobante = useId()
   const [abierto, setAbierto] = useState(false)
   const [montoTexto, setMontoTexto] = useState('')
   const [medio, setMedio] = useState<string>('efectivo')
+  const [comprobante, setComprobante] = useState<File | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -139,6 +141,7 @@ export function AgregarAbonoDialog({
     if (valor) {
       setMontoTexto('')
       setMedio('efectivo')
+      setComprobante(null)
       setError(null)
     }
     setAbierto(valor)
@@ -149,7 +152,12 @@ export function AgregarAbonoDialog({
     setOcupado(true)
     setError(null)
     try {
-      const resultado = await registrarAbono({ ...destino, monto: montoNum, medio })
+      const resultado = await registrarAbono({
+        ...destino,
+        monto: montoNum,
+        medio,
+        comprobante,
+      })
       if (resultado.success) {
         setAbierto(false)
         onResultado(resultado)
@@ -225,8 +233,25 @@ export function AgregarAbonoDialog({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label htmlFor={idComprobante} className="text-sm font-medium">
+              Comprobante{' '}
+              <span className="font-normal text-muted-foreground">(opcional)</span>
+            </label>
+            <input
+              id={idComprobante}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={(e) => {
+                setComprobante(e.target.files?.[0] ?? null)
+                setError(null)
+              }}
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-muted file:px-2 file:py-1 file:text-sm"
+            />
             <p className="mt-1 text-xs text-muted-foreground">
-              El comprobante se adjunta al crear la reserva o pasadía; aquí se registra el pago.
+              Imagen o PDF del pago (máx. 5 MB). Se guarda en el bucket privado.
             </p>
           </div>
 
