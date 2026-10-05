@@ -1,13 +1,16 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/core/adapters/supabase/server'
+import { createAdminClient } from '@/core/adapters/supabase/admin'
 import { esFechaISOValida } from './dia'
 
 /**
- * Guardas compartidos por las acciones del calendario (acciones.ts crea;
- * gestion.ts edita/cancela/elimina). Vive FUERA de los archivos 'use server'
- * porque exporta valores no-función (esquemas, roles, tipos): un 'use server'
- * solo puede exportar funciones async.
+ * Guardas compartidos por las acciones del calendario (acciones.ts y grupos.ts
+ * crean; gestion.ts edita/cancela/elimina). Vive FUERA de los archivos
+ * 'use server' porque exporta valores no-función (esquemas, roles, tipos): un
+ * 'use server' solo puede exportar funciones async. Desde grupos.ts (grupos:
+ * casa llena y grupal) también se comparten la maquinaria de abonos/comprobantes
+ * y el generador de códigos, que antes vivían privados en acciones.ts.
  */
 
 /**
@@ -90,4 +93,133 @@ export async function registrarEnAuditoria(
 export function revalidarCalendario(fecha: string) {
   revalidatePath('/admin/calendario')
   revalidatePath(`/admin/calendario/dia/${fecha}`)
+}
+
+/**
+ * Correo del CLIENTE (opcional): ausente, vacío o solo espacios → null (la
+ * columna es nullable); si viene, debe ser un email válido. Se guarda en
+ * reservations.email / tickets.email.
+ */
+export const emailClienteSchema = z.preprocess(
+  (v) => (v === undefined || v === null || (typeof v === 'string' && v.trim() === '') ? null : v),
+  z.string().trim().email('El correo electrónico no es válido').nullable(),
+)
+
+/**
+ * Abono registrado junto con la creación (R3.1a): solo MONTO y MEDIO; la
+ * subida de comprobante es la pieza siguiente. payments es append-only
+ * (0020: staff select/insert, sin update ni delete) y la BD exige monto > 0
+ * y un único destino (check XOR): Zod los anticipa con mensajes claros.
+ */
+const MEDIOS_ABONO = ['efectivo', 'transferencia', 'datáfono', 'otro'] as const
+
+export const abonoSchema = z.object({
+  monto: z.coerce
+    .number({ invalid_type_error: 'El monto del abono debe ser un número' })
+    .positive('El monto del abono debe ser mayor a 0')
+    .max(999_999_999, 'El monto del abono excede el máximo permitido'),
+  medio: z.enum(MEDIOS_ABONO, { message: 'Elige un medio de pago válido' }),
+})
+
+/** Comprobante de pago: imagen o PDF, máximo 5 MB. Guardado en bucket privado. */
+const COMPROBANTE_TIPOS = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+const COMPROBANTE_MAX_BYTES = 5 * 1024 * 1024
+
+/**
+ * Extrae el File del comprobante del input crudo (antes de Zod, que lo descarta).
+ * Lo busca anidado en `abono.comprobante` (flujo de crear) y también a nivel
+ * raíz en `comprobante` (flujo de abono sobre reserva/pasadía existente).
+ */
+export function extraerComprobante(input: unknown): File | null {
+  const obj = input as { comprobante?: unknown; abono?: { comprobante?: unknown } }
+  const posible = obj?.abono?.comprobante ?? obj?.comprobante
+  return posible instanceof File && posible.size > 0 ? posible : null
+}
+
+/**
+ * Sube el comprobante al bucket privado 'comprobantes' con service-role (tras
+ * revalidar staff en quien llama). Devuelve la ruta guardada o un mensaje de error.
+ * El bucket es privado: se ve solo por URL firmada (urlComprobante).
+ */
+async function subirComprobante(
+  file: File,
+  codigoDestino: string,
+): Promise<{ path?: string; error?: string }> {
+  if (!COMPROBANTE_TIPOS.includes(file.type)) {
+    return { error: 'El comprobante debe ser imagen (JPG/PNG/WEBP) o PDF' }
+  }
+  if (file.size > COMPROBANTE_MAX_BYTES) {
+    return { error: 'El comprobante supera el máximo de 5 MB' }
+  }
+  const ext = (file.name.split('.').pop() ?? 'bin').toLowerCase().replace(/[^a-z0-9]/g, '')
+  const path = `${codigoDestino}/${Date.now()}.${ext}`
+  const admin = createAdminClient()
+  const { error } = await admin.storage
+    .from('comprobantes')
+    .upload(path, file, { contentType: file.type, upsert: false })
+  if (error) return { error: `No se pudo subir el comprobante: ${error.message}` }
+  return { path }
+}
+
+/** Código público único: prefijo + 6 caracteres sin ambigüedades. */
+const ALFABETO_CODIGO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+export function generarCodigo(prefijo: string): string {
+  let sufijo = ''
+  for (let i = 0; i < 6; i++) {
+    sufijo += ALFABETO_CODIGO[Math.floor(Math.random() * ALFABETO_CODIGO.length)]
+  }
+  return `${prefijo}-${sufijo}`
+}
+
+/**
+ * Inserta el abono en payments y lo audita (`abono.registrar`). Solo INSERT:
+ * la tabla es append-only. Devuelve null si quedó registrado, o el mensaje de
+ * error para que quien llama decida cómo informarlo (el destino ya existe).
+ * El entity_id de la auditoría es el código del destino: la fila de payments
+ * no tiene un código legible y no se hace .select() solo para auditar.
+ */
+export async function insertarAbonoYAuditar(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  actor: { id: string; email: string },
+  destino: { reservationId?: string; ticketId?: string; codigo: string },
+  abono: { monto: number; medio: string },
+  comprobante?: File | null,
+): Promise<string | null> {
+  // Comprobante opcional: se sube primero para guardar su ruta en el pago.
+  let comprobantePath: string | null = null
+  if (comprobante) {
+    const subida = await subirComprobante(comprobante, destino.codigo)
+    if (subida.error) return subida.error
+    comprobantePath = subida.path ?? null
+  }
+
+  const { error } = await supabase.from('payments').insert({
+    reservation_id: destino.reservationId ?? null,
+    ticket_id: destino.ticketId ?? null,
+    monto: abono.monto,
+    medio: abono.medio,
+    comprobante_path: comprobantePath,
+    actor_id: actor.id,
+    actor_email: actor.email,
+  })
+
+  if (error) return error.message
+
+  await registrarEnAuditoria(supabase, {
+    actorId: actor.id,
+    actorEmail: actor.email,
+    action: 'abono.registrar',
+    entity: 'payment',
+    entityId: destino.codigo,
+    summary: {
+      destino: destino.reservationId ? 'reserva' : 'pasadia',
+      codigo_destino: destino.codigo,
+      monto: abono.monto,
+      medio: abono.medio,
+      con_comprobante: Boolean(comprobantePath),
+    },
+  })
+
+  return null
 }

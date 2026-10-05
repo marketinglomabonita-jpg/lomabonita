@@ -36,6 +36,14 @@ export type ReservaDelDia = {
   checkinAt: string | null
   /** Rutas de comprobantes subidos (la URL firmada la pide urlComprobante). */
   comprobantes: string[]
+  /** Grupo al que pertenece la fila (casa llena / grupal); null = individual. */
+  grupoId: string | null
+  grupoTipo: 'casa_llena' | 'grupal' | null
+  /**
+   * Nº total de personas del grupo; SOLO lo trae la fila representante de una
+   * reserva grupal (las demás filas, y las de casa llena, van con null).
+   */
+  participantes: number | null
 }
 
 /** Habitación con su estado de ocupación en un día concreto. */
@@ -288,7 +296,9 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
       .order('numero'),
     supabase
       .from('reservations')
-      .select('id, codigo, room_id, nombre, telefono, email, estado, during, valor_total, checkin_at')
+      .select(
+        'id, codigo, room_id, nombre, telefono, email, estado, during, valor_total, checkin_at, grupo_id, grupo_tipo, participantes',
+      )
       .in('estado', ['solicitada', 'confirmada'])
       .overlaps('during', `[${fecha},${diaSiguiente(fecha)})`),
     supabase
@@ -316,6 +326,9 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
     during: string
     valor_total: number | string | null
     checkin_at: string | null
+    grupo_id: string | null
+    grupo_tipo: string | null
+    participantes: number | null
   }>
   const crudasTickets = (tickets.data ?? []) as Array<{
     id: string
@@ -356,6 +369,11 @@ export async function getDetalleDia(fecha: string): Promise<DetalleDia> {
       saldo: valorTotal === null ? null : redondear2(valorTotal - abonos.abonado),
       checkinAt: r.checkin_at ?? null,
       comprobantes: abonos.comprobantes,
+      // Grupo (0026): null en reservas individuales; el tipo solo puede ser
+      // uno de los dos valores del check de la BD, cualquier otra cosa → null.
+      grupoId: r.grupo_id ?? null,
+      grupoTipo: r.grupo_tipo === 'casa_llena' || r.grupo_tipo === 'grupal' ? r.grupo_tipo : null,
+      participantes: r.participantes ?? null,
     }
   }
 
