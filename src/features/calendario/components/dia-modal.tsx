@@ -7,10 +7,12 @@ import { Dialog, DialogContent, DialogTitle } from '@/core/ui/dialog'
 import { consultarHabitacionesLibres } from '../api/acciones'
 import type { HabitacionLibre, PlanPasadia } from '../api/dia'
 import type { DiaOcupacion } from '../api/queries'
+import { CrearCasaLlenaForm } from './crear-casa-llena-form'
+import { CrearGrupalForm } from './crear-grupal-form'
 import { CrearPasadiaForm } from './crear-pasadia-form'
 import { CrearReservaForm } from './crear-reserva-form'
 
-type Vista = 'menu' | 'hospedaje' | 'pasadia'
+type Vista = 'menu' | 'hospedaje' | 'pasadia' | 'casa_llena' | 'grupal'
 
 type DiaModalContextValue = {
   abrir: (dia: DiaOcupacion) => void
@@ -76,6 +78,20 @@ function MenuDia({ dia, onElegir }: { dia: DiaOcupacion; onElegir: (vista: Vista
         </Button>
       </div>
 
+      {/* Reservas de grupo (casa completa o varias habitaciones a un titular):
+          mismo popup, formularios propios. */}
+      <p className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        Grupos
+      </p>
+      <div className="grid gap-3">
+        <Button type="button" size="lg" variant="outline" onClick={() => onElegir('casa_llena')}>
+          Reservar casa llena
+        </Button>
+        <Button type="button" size="lg" variant="outline" onClick={() => onElegir('grupal')}>
+          Reserva grupal
+        </Button>
+      </div>
+
       <Link
         href={`/admin/calendario/dia/${dia.fecha}`}
         className="block text-center text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
@@ -134,6 +150,53 @@ function VistaHospedaje({ fecha, onDone }: { fecha: string; onDone: () => void }
 }
 
 /**
+ * Paso de reserva grupal: carga las habitaciones libres del rango inicial
+ * [fecha, fecha+1) y monta el formulario; el form mismo reconsulta si el
+ * usuario cambia las fechas. Mismo molde que VistaHospedaje.
+ */
+function VistaGrupal({ fecha, onDone }: { fecha: string; onDone: () => void }) {
+  const salidaInicial = diaSiguienteDe(fecha)
+  const [libres, setLibres] = useState<HabitacionLibre[] | null>(null)
+  const [fallo, setFallo] = useState(false)
+
+  useEffect(() => {
+    // El guard `vivo` ignora respuestas viejas; el estado arranca limpio en
+    // cada apertura porque el contenido se remonta con key={nonce}.
+    let vivo = true
+    consultarHabitacionesLibres(fecha, salidaInicial)
+      .then((r) => {
+        if (vivo) setLibres(r)
+      })
+      .catch(() => {
+        if (vivo) setFallo(true)
+      })
+    return () => {
+      vivo = false
+    }
+  }, [fecha, salidaInicial])
+
+  if (fallo) {
+    return (
+      <p className="text-sm text-red-900 dark:text-red-100">
+        No se pudieron cargar las habitaciones libres. Cierra el popup e intenta de nuevo.
+      </p>
+    )
+  }
+  if (!libres) {
+    return <p className="text-sm text-muted-foreground">Buscando habitaciones libres…</p>
+  }
+
+  return (
+    <CrearGrupalForm
+      fecha={fecha}
+      salidaInicial={salidaInicial}
+      habitacionesLibres={libres}
+      onDone={onDone}
+    />
+  )
+}
+
+/**
  * Ventana emergente del día (R3.1a): clic en un día del calendario abre el
  * popup SIN navegar — resumen corto, dos botones ("Reservar hospedaje" /
  * "Reservar pasadía") y el formulario elegido DENTRO del mismo popup.
@@ -180,6 +243,15 @@ export function DiaModalProvider({
               {vista === 'pasadia' && (
                 <CrearPasadiaForm fecha={dia.fecha} planes={planes} onDone={cerrar} />
               )}
+              {vista === 'casa_llena' && (
+                <CrearCasaLlenaForm
+                  fecha={dia.fecha}
+                  salidaInicial={diaSiguienteDe(dia.fecha)}
+                  totalHabitaciones={dia.totalRooms}
+                  onDone={cerrar}
+                />
+              )}
+              {vista === 'grupal' && <VistaGrupal fecha={dia.fecha} onDone={cerrar} />}
             </div>
           )}
         </DialogContent>

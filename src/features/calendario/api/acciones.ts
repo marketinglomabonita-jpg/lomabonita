@@ -89,6 +89,14 @@ const crearReservaSchema = z
       .int('Los niños deben ser un número entero')
       .min(0, 'Los niños no pueden ser negativos')
       .max(50, 'Cantidad de niños fuera de rango'),
+    // Menores de 5 (gratis): solo se registran, NO suman al valor. Default 0
+    // porque el campo puede venir vacío.
+    menores5: z.coerce
+      .number({ invalid_type_error: 'Los menores de 5 deben ser un número' })
+      .int('Los menores de 5 deben ser un número entero')
+      .min(0, 'Los menores de 5 no pueden ser negativos')
+      .max(50, 'Cantidad de menores de 5 fuera de rango')
+      .default(0),
     nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(120),
     telefono: z.string().trim().min(1, 'El teléfono es obligatorio').max(40),
     email: emailClienteSchema,
@@ -208,6 +216,7 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
         during: `[${d.llegada},${d.salida})`, // llegada inclusiva, salida exclusiva
         adultos: d.adultos,
         ninos: d.ninos,
+        menores_5: d.menores5,
         nombre: d.nombre,
         telefono: d.telefono,
         email: d.email,
@@ -248,6 +257,7 @@ export async function crearReservaAlojamiento(input: unknown): Promise<Resultado
           salida: d.salida,
           adultos: d.adultos,
           ninos: d.ninos,
+          menores_5: d.menores5,
           valor_total: d.valor_total,
           extras: lineasExtras,
         },

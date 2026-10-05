@@ -24,6 +24,7 @@ type Mensaje = { tipo: 'ok' | 'error'; texto: string }
 
 const ADULTOS_INICIALES = 2
 const NINOS_INICIALES = 0
+const MENORES5_INICIALES = 0
 
 /** La rueda del mouse no cambia el número: suelta el foco y deja scrollear la página. */
 const soltarFocoEnRueda = (e: React.WheelEvent<HTMLInputElement>) => e.currentTarget.blur()
@@ -86,12 +87,14 @@ function sumaExtrasDe(estado: Record<ExtraSlug, ExtraEnForma>): number {
  * PRIMER campo (las fechas quedan debajo) y solo ofrece habitaciones
  * LIBRES para el rango elegido; si aun así alguien la ocupa a
  * la vez, la restricción de exclusión de la BD rechaza el insert y la action
- * traduce el error 23P01 al mensaje visible. El valor total se PRE-RELLENA en
- * vivo con la tarifa (personas × PERSON_RATE × noches) MÁS los extras
- * marcados (R4.A: Balsaje/Cascadas con precio editable) y queda editable
- * (R4: menores de 5 gratis, el admin ajusta); alimenta el saldo en vivo de la
- * sección de Abono (AbonoFields). El servidor guarda el valor enviado y el
- * desglose de extras en reservations.extras.
+ * traduce el error 23P01 al mensaje visible. La gente va desglosada en tres
+ * grupos: adultos, niños de FREE_CHILD_AGE en adelante (tarifa normal) y
+ * menores de FREE_CHILD_AGE (gratis: se registran pero NO pagan). El valor
+ * total se PRE-RELLENA en vivo con la tarifa ((adultos + niños) × PERSON_RATE
+ * × noches) MÁS los extras marcados (R4.A: Balsaje/Cascadas con precio
+ * editable) y queda editable; alimenta el saldo en vivo de la sección de
+ * Abono (AbonoFields). El servidor guarda el valor enviado y el desglose de
+ * extras en reservations.extras.
  */
 export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onDone }: Props) {
   const router = useRouter()
@@ -101,15 +104,16 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
   const [salida, setSalida] = useState(salidaInicial)
   const [adultos, setAdultos] = useState(ADULTOS_INICIALES)
   const [ninos, setNinos] = useState(NINOS_INICIALES)
+  const [menores5, setMenores5] = useState(MENORES5_INICIALES)
   const [libres, setLibres] = useState<HabitacionLibre[]>(habitacionesLibres)
   const [recargando, setRecargando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
   const [mensaje, setMensaje] = useState<Mensaje | null>(null)
   // Pre-relleno por tarifa (R4): arranca sugiriendo con los valores iniciales
-  // y se recalcula en cada evento que la afecta (personas o fechas). El campo
-  // queda EDITABLE: menores de FREE_CHILD_AGE no pagan y el admin ajusta a
-  // mano antes de guardar; lo escrito dura hasta el próximo cambio de la
-  // sugerencia. Event-driven, sin effect (set-state-in-effect del linter).
+  // y se recalcula en cada evento que la afecta (adultos, niños o fechas; los
+  // menores de FREE_CHILD_AGE no pagan y NO la afectan). El campo queda
+  // EDITABLE: lo escrito dura hasta el próximo cambio de la sugerencia.
+  // Event-driven, sin effect (set-state-in-effect del linter).
   const [valorTotalTexto, setValorTotalTexto] = useState(() => {
     const inicial = sugerenciaDe(fecha, salidaInicial, ADULTOS_INICIALES, NINOS_INICIALES)
     return inicial !== null ? String(inicial) : ''
@@ -208,6 +212,7 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
         salida,
         adultos: formData.get('adultos'),
         ninos: formData.get('ninos'),
+        menores5: formData.get('menores5'),
         nombre: formData.get('nombre'),
         telefono: formData.get('telefono'),
         email: formData.get('email'),
@@ -347,7 +352,7 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
 
         <div>
           <label htmlFor="reserva-ninos" className="text-sm font-medium">
-            Niños
+            Niños ({FREE_CHILD_AGE} años o más)
           </label>
           <input
             id="reserva-ninos"
@@ -365,6 +370,31 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
             onWheel={soltarFocoEnRueda}
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
           />
+        </div>
+
+        <div>
+          <label htmlFor="reserva-menores5" className="text-sm font-medium">
+            Niños menores de {FREE_CHILD_AGE}{' '}
+            <span className="font-normal text-muted-foreground">(gratis)</span>
+          </label>
+          <input
+            id="reserva-menores5"
+            type="number"
+            name="menores5"
+            min={0}
+            max={50}
+            value={menores5}
+            onChange={(e) => {
+              const valor = Number(e.target.value) || 0
+              setMenores5(valor)
+              setMensaje(null)
+            }}
+            onWheel={soltarFocoEnRueda}
+            className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Solo se registran: no suman al valor total
+          </p>
         </div>
 
         <div>
@@ -432,8 +462,9 @@ export function CrearReservaForm({ fecha, salidaInicial, habitacionesLibres, onD
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm no-spin"
           />
           <p className="mt-1 text-xs text-muted-foreground">
-            Sugerido por tarifa ({formatCop(PERSON_RATE)} por persona por noche) más los extras
-            marcados; ajusta si hay menores de {FREE_CHILD_AGE} años (gratis)
+            Sugerido por tarifa ({formatCop(PERSON_RATE)} por noche por persona: adultos y niños de{' '}
+            {FREE_CHILD_AGE} años o más) más los extras marcados; los menores de {FREE_CHILD_AGE}{' '}
+            años no pagan
           </p>
         </div>
       </div>

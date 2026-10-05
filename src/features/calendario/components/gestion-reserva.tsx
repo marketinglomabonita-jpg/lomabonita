@@ -39,7 +39,9 @@ import {
  * contacto, dinero (total/abonado/saldo, el saldo salta a la vista) y las
  * acciones — marcar/deshacer la llegada (check-in), abonar, ver comprobantes,
  * editar fechas/habitación, cancelar y eliminar. Toda escritura pasa por las
- * server actions de api/gestion.ts.
+ * server actions de api/gestion.ts. Con `enGrupo` (fila de un bloque casa
+ * llena/grupal) se queda en lo por-huésped — check-in y comprobantes — y el
+ * resto se gestiona desde la ficha del bloque (GestionBloque).
  */
 
 type Props = {
@@ -48,6 +50,13 @@ type Props = {
   habitacionActual: { id: string; numero: number; nombre: string } | null
   /** Día abierto (YYYY-MM-DD): fallback de fechas si el during no parte limpio. */
   fecha: string
+  /**
+   * true cuando la fila es parte de un bloque (casa llena / grupal): el dinero
+   * y las acciones delicadas (abonar, editar, cancelar, eliminar) se gestionan
+   * desde la ficha del BLOQUE, no por habitación. Aquí solo queda lo que sí es
+   * por huésped: el check-in y los comprobantes.
+   */
+  enGrupo?: boolean
 }
 
 /** Copia client-safe de diaSiguiente (api/dia.ts importa el cliente de servidor). */
@@ -64,7 +73,7 @@ function nochesEntre(llegada: string, salida: string): number {
   return Math.round((Date.UTC(as, ms - 1, ds) - Date.UTC(ai, mi - 1, di)) / 86_400_000)
 }
 
-export function GestionReserva({ reserva, habitacionActual, fecha }: Props) {
+export function GestionReserva({ reserva, habitacionActual, fecha, enGrupo = false }: Props) {
   const router = useRouter()
   const [mensaje, setMensaje] = useState<Mensaje | null>(null)
 
@@ -120,37 +129,41 @@ export function GestionReserva({ reserva, habitacionActual, fecha }: Props) {
         {contacto && ` · ${contacto}`}
       </p>
 
-      {/* El dinero: total, abonado y el SALDO destacado (verde pagado, ámbar pendiente). */}
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-md bg-muted/50 p-2">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total</p>
-          <p className="text-sm font-medium tabular-nums">
-            {reserva.valor_total === null ? 'Por definir' : formatCop(reserva.valor_total)}
-          </p>
+      {/* El dinero: total, abonado y el SALDO destacado (verde pagado, ámbar
+          pendiente). En bloque no se muestra: el saldo del grupo vive en la
+          ficha del bloque (la fila representante es la única con dinero). */}
+      {!enGrupo && (
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-md bg-muted/50 p-2">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total</p>
+            <p className="text-sm font-medium tabular-nums">
+              {reserva.valor_total === null ? 'Por definir' : formatCop(reserva.valor_total)}
+            </p>
+          </div>
+          <div className="rounded-md bg-muted/50 p-2">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Abonado</p>
+            <p className="text-sm font-medium tabular-nums">{formatCop(reserva.abonado)}</p>
+          </div>
+          <div
+            className={
+              reserva.saldo === null
+                ? 'rounded-md bg-muted/50 p-2'
+                : reserva.saldo === 0
+                  ? 'rounded-md bg-green-100 p-2 dark:bg-green-950'
+                  : 'rounded-md bg-amber-100 p-2 dark:bg-amber-950'
+            }
+          >
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Saldo</p>
+            <p className="text-sm font-semibold tabular-nums">
+              {reserva.saldo === null
+                ? 'Por definir'
+                : reserva.saldo === 0
+                  ? 'Pagado'
+                  : formatCop(reserva.saldo)}
+            </p>
+          </div>
         </div>
-        <div className="rounded-md bg-muted/50 p-2">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Abonado</p>
-          <p className="text-sm font-medium tabular-nums">{formatCop(reserva.abonado)}</p>
-        </div>
-        <div
-          className={
-            reserva.saldo === null
-              ? 'rounded-md bg-muted/50 p-2'
-              : reserva.saldo === 0
-                ? 'rounded-md bg-green-100 p-2 dark:bg-green-950'
-                : 'rounded-md bg-amber-100 p-2 dark:bg-amber-950'
-          }
-        >
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Saldo</p>
-          <p className="text-sm font-semibold tabular-nums">
-            {reserva.saldo === null
-              ? 'Por definir'
-              : reserva.saldo === 0
-                ? 'Pagado'
-                : formatCop(reserva.saldo)}
-          </p>
-        </div>
-      </div>
+      )}
 
       <div className="flex flex-wrap items-start gap-2">
         <ControlLlegada
@@ -161,42 +174,52 @@ export function GestionReserva({ reserva, habitacionActual, fecha }: Props) {
             notificar(r, accion === 'marcar' ? 'Llegada registrada.' : 'Llegada deshecha.')
           }
         />
-        <AgregarAbonoDialog
-          destino={{ reservationId: reserva.id }}
-          codigo={reserva.codigo ?? 'reserva'}
-          saldo={reserva.saldo}
-          onResultado={(r) => notificar(r, 'Abono registrado.')}
-        />
-        <EditarReservaDialog
-          reserva={reserva}
-          habitacionActual={habitacionActual}
-          fecha={fecha}
-          notificar={notificar}
-        />
+        {/* En bloque, el dinero y las acciones delicadas viven en la ficha del
+            bloque; aquí solo queda el check-in (por huésped) y los comprobantes. */}
+        {!enGrupo && (
+          <>
+            <AgregarAbonoDialog
+              destino={{ reservationId: reserva.id }}
+              codigo={reserva.codigo ?? 'reserva'}
+              saldo={reserva.saldo}
+              onResultado={(r) => notificar(r, 'Abono registrado.')}
+            />
+            <EditarReservaDialog
+              reserva={reserva}
+              habitacionActual={habitacionActual}
+              fecha={fecha}
+              notificar={notificar}
+            />
+          </>
+        )}
         {reserva.comprobantes.map((path, indice) => (
           <ComprobanteLink key={path} path={path} indice={indice + 1} />
         ))}
-        <ConfirmarDialog
-          etiqueta="Cancelar"
-          icono={<Ban aria-hidden />}
-          clasesTrigger="text-red-700 hover:bg-red-50 dark:text-red-200 dark:hover:bg-red-950"
-          titulo="¿Cancelar esta reserva?"
-          descripcion={`La habitación queda libre de inmediato y el cupo se libera solo. La reserva pasa a «cancelada» y queda en el historial (no se borra).`}
-          textoConfirmar="Sí, cancelar"
-          onConfirmar={() => cancelarReserva({ id: reserva.id })}
-          onResultado={(r) => notificar(r, 'Reserva cancelada. La habitación quedó libre.')}
-        />
-        <ConfirmarDialog
-          fuerte
-          etiqueta="Eliminar"
-          icono={<Trash2 aria-hidden />}
-          clasesTrigger="text-red-700 hover:bg-red-50 dark:text-red-200 dark:hover:bg-red-950"
-          titulo="Eliminar definitivamente"
-          descripcion="Borra la reserva y sus abonos de la base de datos. Solo para limpiar datos de prueba: usa «Cancelar» para liberar la habitación conservando el historial."
-          textoConfirmar="Eliminar definitivamente"
-          onConfirmar={() => eliminarReserva({ id: reserva.id })}
-          onResultado={(r) => notificar(r, 'Reserva eliminada.')}
-        />
+        {!enGrupo && (
+          <>
+            <ConfirmarDialog
+              etiqueta="Cancelar"
+              icono={<Ban aria-hidden />}
+              clasesTrigger="text-red-700 hover:bg-red-50 dark:text-red-200 dark:hover:bg-red-950"
+              titulo="¿Cancelar esta reserva?"
+              descripcion={`La habitación queda libre de inmediato y el cupo se libera solo. La reserva pasa a «cancelada» y queda en el historial (no se borra).`}
+              textoConfirmar="Sí, cancelar"
+              onConfirmar={() => cancelarReserva({ id: reserva.id })}
+              onResultado={(r) => notificar(r, 'Reserva cancelada. La habitación quedó libre.')}
+            />
+            <ConfirmarDialog
+              fuerte
+              etiqueta="Eliminar"
+              icono={<Trash2 aria-hidden />}
+              clasesTrigger="text-red-700 hover:bg-red-50 dark:text-red-200 dark:hover:bg-red-950"
+              titulo="Eliminar definitivamente"
+              descripcion="Borra la reserva y sus abonos de la base de datos. Solo para limpiar datos de prueba: usa «Cancelar» para liberar la habitación conservando el historial."
+              textoConfirmar="Eliminar definitivamente"
+              onConfirmar={() => eliminarReserva({ id: reserva.id })}
+              onResultado={(r) => notificar(r, 'Reserva eliminada.')}
+            />
+          </>
+        )}
       </div>
     </div>
   )

@@ -9,9 +9,11 @@ import {
   fechaLegible,
   getDetalleDia,
   getPlanesPasadia,
+  type ReservaDelDia,
 } from '@/features/calendario/api/dia'
 import { CrearPasadiaForm } from '@/features/calendario/components/crear-pasadia-form'
 import { CrearReservaForm } from '@/features/calendario/components/crear-reserva-form'
+import { GestionBloque, type BloqueDelDia } from '@/features/calendario/components/gestion-bloque'
 import { GestionPasadia } from '@/features/calendario/components/gestion-pasadia'
 import { GestionReserva } from '@/features/calendario/components/gestion-reserva'
 
@@ -50,6 +52,34 @@ export default async function DiaCalendarioPage({
   const libresHoy = detalle.habitaciones.filter((h) => !h.ocupadaPor)
   const cupoTotal = Math.max(detalle.pasadiaPersonas, 0) + Math.max(detalle.cupoRestante, 0)
 
+  // Bloques presentes el día (casa llena / grupal): UNA ficha por grupo, con
+  // el dinero y los participantes de su fila representante — la de menor
+  // número. Las habitaciones llegan ordenadas por numero, así que la PRIMERA
+  // fila vista de cada grupo ES la representante; las reservas sin habitación
+  // del grupo también cuentan (son parte del bloque).
+  const bloques = new Map<string, BloqueDelDia>()
+  const acumularBloque = (r: ReservaDelDia) => {
+    if (!r.grupoId || !r.grupoTipo) return
+    const previo = bloques.get(r.grupoId)
+    if (previo) {
+      previo.habitaciones += 1
+      return
+    }
+    bloques.set(r.grupoId, {
+      grupoId: r.grupoId,
+      tipo: r.grupoTipo,
+      titular: r.nombre,
+      habitaciones: 1,
+      participantes: r.participantes,
+      saldo: r.saldo,
+      representanteId: r.id,
+      representanteCodigo: r.codigo,
+      rango: r.llegada && r.salida ? `${r.llegada} → ${r.salida}` : null,
+    })
+  }
+  for (const h of detalle.habitaciones) if (h.reserva) acumularBloque(h.reserva)
+  for (const r of detalle.reservasSinHabitacion) acumularBloque(r)
+
   return (
     <div className="space-y-6">
       {/* Encabezado con la fecha y vuelta al mes */}
@@ -75,6 +105,17 @@ export default async function DiaCalendarioPage({
           {detalle.habitaciones.length} ocupadas
         </h2>
 
+        {/* Bloques (casa llena / grupal): UNA ficha por grupo, con las acciones
+            de bloque (cancelar/eliminar todo y abono a la representante). Las
+            habitaciones del bloque solo conservan su check-in por huésped. */}
+        {bloques.size > 0 && (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[...bloques.values()].map((b) => (
+              <GestionBloque key={b.grupoId} bloque={b} />
+            ))}
+          </div>
+        )}
+
         {detalle.habitaciones.length > 0 && (
           <div className="grid gap-2 sm:grid-cols-2">
             {detalle.habitaciones.map((h) => (
@@ -96,13 +137,28 @@ export default async function DiaCalendarioPage({
                 </div>
 
                 {/* Gestión de la reserva que ocupa la habitación (R5): saldo,
-                    abonos, comprobantes, editar, cancelar, eliminar. */}
+                    abonos, comprobantes, editar, cancelar, eliminar. Si la fila
+                    es parte de un bloque, solo queda el check-in por huésped y
+                    un badge que remite a la ficha del bloque. */}
                 {h.reserva && (
-                  <div className="mt-3 border-t pt-3">
+                  <div className="mt-3 space-y-2 border-t pt-3">
+                    {h.reserva.grupoId && h.reserva.grupoTipo && (
+                      <p className="flex flex-wrap items-center gap-2">
+                        <Badge className="bg-violet-100 text-violet-800">
+                          Parte de{' '}
+                          {h.reserva.grupoTipo === 'casa_llena' ? 'Casa llena' : 'Grupo'} ·{' '}
+                          {h.reserva.nombre}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          Se gestiona desde el bloque
+                        </span>
+                      </p>
+                    )}
                     <GestionReserva
                       reserva={h.reserva}
                       habitacionActual={{ id: h.id, numero: h.numero, nombre: h.nombre }}
                       fecha={fechaISO}
+                      enGrupo={Boolean(h.reserva.grupoId && h.reserva.grupoTipo)}
                     />
                   </div>
                 )}
@@ -124,8 +180,18 @@ export default async function DiaCalendarioPage({
               reasignarlas a una habitación libre.
             </p>
             {detalle.reservasSinHabitacion.map((r) => (
-              <div key={r.id} className="rounded-lg border bg-card p-3">
-                <GestionReserva reserva={r} habitacionActual={null} fecha={fechaISO} />
+              <div key={r.id} className="space-y-2 rounded-lg border bg-card p-3">
+                {r.grupoId && r.grupoTipo && (
+                  <Badge className="bg-violet-100 text-violet-800">
+                    Parte de {r.grupoTipo === 'casa_llena' ? 'Casa llena' : 'Grupo'} · {r.nombre}
+                  </Badge>
+                )}
+                <GestionReserva
+                  reserva={r}
+                  habitacionActual={null}
+                  fecha={fechaISO}
+                  enGrupo={Boolean(r.grupoId && r.grupoTipo)}
+                />
               </div>
             ))}
           </div>
