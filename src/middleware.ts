@@ -7,15 +7,30 @@ import { isManagedPath, IS_DEMO } from '@/core/config/site'
  *  1. Compuerta secreta: /admin, /cocina y /login responden 404 salvo que la peticion
  *     traiga la cookie panel_access (que solo se obtiene entrando por la direccion
  *     secreta /<ADMIN_PANEL_SLUG>). Fail-closed: sin env, todo sigue cerrado.
- *  2. Refresca la sesion de Supabase en cada request (patron @supabase/ssr).
- *  3. Protege las rutas gestionadas (/admin, /cocina): sin sesion -> redirige a /login.
+ *  2. RESILIENCIA: solo las rutas gestionadas (/admin, /cocina) consultan Supabase.
+ *     La web publica y el login pasan directo sin tocar la base de datos, asi una
+ *     caida o pausa de Supabase NUNCA tumba el sitio publico (antes el 504 global).
+ *  3. En rutas gestionadas se refresca la sesion (patron @supabase/ssr) y se protege:
+ *     getUser() va con timeout y, si Supabase no responde o no hay sesion, fail-closed
+ *     -> redirige a /login (jamas se expone el panel sin autenticar).
  *  4. /admin, /cocina y /login van SIEMPRE noindex; en modo demo, todo el sitio.
  */
 
 const PANEL_COOKIE = 'panel_access'
 
+/** Tiempo maximo que esperamos a Supabase en el middleware antes de fail-closed. */
+const SUPABASE_TIMEOUT_MS = 3000
+
 function isLoginPath(pathname: string): boolean {
   return pathname === '/login' || pathname.startsWith('/login/')
+}
+
+/** Rechaza con 'timeout' si la promesa no resuelve dentro de ms. */
+function conTimeout<T>(promesa: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promesa,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ])
 }
 
 export async function middleware(request: NextRequest) {
@@ -37,16 +52,31 @@ export async function middleware(request: NextRequest) {
     return res
   }
 
+  const esGestionada = isManagedPath(pathname)
+  const esLogin = isLoginPath(pathname)
+
   // 2. Compuerta: sin la cookie correcta, el panel y el login no existen (404).
   //    No consulta Supabase: se corta aqui antes de crear el cliente.
   //    Fail-closed: si falta panelKey en el env, la cookie nunca es valida.
-  if (isManagedPath(pathname) || isLoginPath(pathname)) {
+  if (esGestionada || esLogin) {
     const hasAccess = !!panelKey && request.cookies.get(PANEL_COOKIE)?.value === panelKey
     if (!hasAccess) {
       return new NextResponse('Not Found', { status: 404 })
     }
   }
 
+  // 3. Web publica y login: NO se toca Supabase. Pasa directo (resiliencia: una
+  //    caida de la base de datos no puede afectar nada fuera del panel). Solo se
+  //    marca noindex donde corresponde.
+  if (!esGestionada) {
+    const res = NextResponse.next({ request })
+    if (IS_DEMO || esLogin) {
+      res.headers.set('X-Robots-Tag', 'noindex, nofollow')
+    }
+    return res
+  }
+
+  // 4. Ruta gestionada: refrescar sesion de Supabase y proteger el acceso.
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -70,23 +100,27 @@ export async function middleware(request: NextRequest) {
     },
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // getUser() con timeout. Si Supabase no responde (pausado/lento/caido) o no hay
+  // sesion, fail-closed: al login. El panel jamas queda accesible sin autenticar.
+  let user = null
+  try {
+    const {
+      data: { user: u },
+    } = await conTimeout(supabase.auth.getUser(), SUPABASE_TIMEOUT_MS)
+    user = u
+  } catch {
+    user = null
+  }
 
-  // 3. Ruta gestionada sin sesion -> al login (ya paso la compuerta de cookie).
-  if (isManagedPath(pathname) && !user) {
+  if (!user) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // 4. Panel y login nunca indexables (siempre); en demo, todo el sitio.
-  if (IS_DEMO || isManagedPath(pathname) || isLoginPath(pathname)) {
-    response.headers.set('X-Robots-Tag', 'noindex, nofollow')
-  }
-
+  // Panel siempre noindex.
+  response.headers.set('X-Robots-Tag', 'noindex, nofollow')
   return response
 }
 
