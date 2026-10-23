@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale'
 import { CheckCircle2, Calendar, Users, Home } from 'lucide-react'
 import { createAdminClient } from '@/core/adapters/supabase/admin'
 import { buildPageMetadata } from '@/core/lib/seo'
+import { enmascararEmail, enmascararTelefono } from '@/core/lib/pii'
 import { buttonVariants } from '@/core/ui/button'
 
 type Props = {
@@ -134,10 +135,12 @@ export default async function ReservationConfirmationPage({ params }: Props) {
                   <p className="font-medium">Datos de contacto</p>
                   <p className="mt-1 text-muted-foreground">{reservation.nombre}</p>
                   {reservation.email && (
-                    <p className="text-muted-foreground">{reservation.email}</p>
+                    <p className="text-muted-foreground">{enmascararEmail(reservation.email)}</p>
                   )}
                   {reservation.telefono && (
-                    <p className="text-muted-foreground">{reservation.telefono}</p>
+                    <p className="text-muted-foreground">
+                      {enmascararTelefono(reservation.telefono)}
+                    </p>
                   )}
                 </div>
               )}

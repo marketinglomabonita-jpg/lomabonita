@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/core/adapters/supabase/server'
+import { generarCodigoSeguro } from '@/core/lib/codigo'
 import { createTicketSchema, type CreateTicketInput, type Experience } from '../contracts/types'
 import { todayISO } from '../lib/format'
 
@@ -87,7 +88,7 @@ export async function createTicket(input: CreateTicketInput): Promise<CreateTick
 
     // 6. Insertar (reintento único si el código aleatorio choca por azar)
     for (let attempt = 0; attempt < 2; attempt++) {
-      const codigo = generateTicketCode()
+      const codigo = generarCodigoSeguro('PD')
 
       const { error: insertError } = await supabase.from('tickets').insert({
         codigo,
@@ -116,7 +117,7 @@ export async function createTicket(input: CreateTicketInput): Promise<CreateTick
         }
       }
 
-      console.error('Error inserting ticket:', insertError)
+      console.error('Error inserting ticket:', insertError.code)
       return { success: false, error: 'Error al emitir el ticket' }
     }
 
@@ -125,10 +126,4 @@ export async function createTicket(input: CreateTicketInput): Promise<CreateTick
     console.error('Unexpected error in createTicket:', err)
     return { success: false, error: 'Error inesperado al procesar la solicitud' }
   }
-}
-
-/** Código único tipo "PD-XXXXXX" (6 dígitos aleatorios). */
-function generateTicketCode(): string {
-  const random = Math.floor(100000 + Math.random() * 900000)
-  return `PD-${random}`
 }

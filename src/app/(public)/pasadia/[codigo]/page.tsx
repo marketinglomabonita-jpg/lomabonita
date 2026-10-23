@@ -9,6 +9,7 @@ import { createAdminClient } from '@/core/adapters/supabase/admin'
 import { SITE_ORIGIN } from '@/core/config/site'
 import { IMAGES } from '@/core/lib/images'
 import { buildPageMetadata } from '@/core/lib/seo'
+import { enmascararEmail, enmascararTelefono } from '@/core/lib/pii'
 import { buttonVariants } from '@/core/ui/button'
 import { formatCOP } from '@/features/pasadias/lib/format'
 import type { Experience, Ticket } from '@/features/pasadias/contracts/types'
@@ -152,8 +153,10 @@ export default async function TicketPage({ params }: Props) {
                 <div className="border-t border-border pt-3">
                   <p className="font-medium">A nombre de</p>
                   <p className="text-muted-foreground">{t.nombre}</p>
-                  {t.email && <p className="text-muted-foreground">{t.email}</p>}
-                  {t.telefono && <p className="text-muted-foreground">{t.telefono}</p>}
+                  {t.email && <p className="text-muted-foreground">{enmascararEmail(t.email)}</p>}
+                  {t.telefono && (
+                    <p className="text-muted-foreground">{enmascararTelefono(t.telefono)}</p>
+                  )}
                 </div>
               </div>
             </div>

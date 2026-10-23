@@ -2,6 +2,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/core/adapters/supabase/server'
 import { createAdminClient } from '@/core/adapters/supabase/admin'
+import { generarCodigoSeguro } from '@/core/lib/codigo'
 import { esFechaISOValida } from './dia'
 
 /**
@@ -161,15 +162,13 @@ async function subirComprobante(
   return { path }
 }
 
-/** Código público único: prefijo + 6 caracteres sin ambigüedades. */
-const ALFABETO_CODIGO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-
+/**
+ * Código público único y cripto-seguro (delega en core/lib/codigo). Las
+ * reservas/pasadías creadas desde el panel se ven en las mismas páginas
+ * públicas por código, así que también deben ser imposibles de enumerar.
+ */
 export function generarCodigo(prefijo: string): string {
-  let sufijo = ''
-  for (let i = 0; i < 6; i++) {
-    sufijo += ALFABETO_CODIGO[Math.floor(Math.random() * ALFABETO_CODIGO.length)]
-  }
-  return `${prefijo}-${sufijo}`
+  return generarCodigoSeguro(prefijo)
 }
 
 /**

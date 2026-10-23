@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/core/adapters/supabase/server'
+import { generarCodigoSeguro } from '@/core/lib/codigo'
 import { createReservationSchema, type CreateReservationInput } from '../contracts/types'
 
 type CreateReservationResult =
@@ -103,46 +104,45 @@ export async function createReservation(
       }
     }
 
-    // 5. Generar código único
-    const codigo = generateReservationCode()
+    // 5. Insertar reserva con código cripto-seguro (reintento si choca por azar)
+    for (let intento = 0; intento < 3; intento++) {
+      const codigo = generarCodigoSeguro('LB')
 
-    // 6. Insertar reserva
-    const { error: insertError } = await supabase.from('reservations').insert({
-      codigo,
-      room_id: availableRoomId,
-      during: `[${data.check_in},${data.check_out})`,
-      adultos: data.adultos,
-      ninos: data.ninos,
-      nombre: data.nombre,
-      email: data.email || null,
-      telefono: data.telefono || null,
-      notas: data.notas || null,
-      estado: 'solicitada',
-    })
+      const { error: insertError } = await supabase.from('reservations').insert({
+        codigo,
+        room_id: availableRoomId,
+        during: `[${data.check_in},${data.check_out})`,
+        adultos: data.adultos,
+        ninos: data.ninos,
+        nombre: data.nombre,
+        email: data.email || null,
+        telefono: data.telefono || null,
+        notas: data.notas || null,
+        estado: 'solicitada',
+      })
 
-    if (insertError) {
-      // Error 23P01 = exclusion constraint violation
+      if (!insertError) {
+        return { success: true, codigo }
+      }
+
+      // 23505 = violación de unicidad del código (astronómicamente improbable) → reintentar
+      if (insertError.code === '23505') continue
+
+      // 23P01 = violación de la restricción de exclusión (doble-booking)
       if (insertError.code === '23P01') {
         return {
           success: false,
           error: 'Esa habitación ya no está disponible (otra reserva se procesó al mismo tiempo)',
         }
       }
-      console.error('Error inserting reservation:', insertError)
+
+      console.error('Error inserting reservation:', insertError.code)
       return { success: false, error: 'Error al crear la reserva' }
     }
 
-    return { success: true, codigo }
+    return { success: false, error: 'No se pudo generar un código único, intenta de nuevo' }
   } catch (err) {
     console.error('Unexpected error in createReservation:', err)
     return { success: false, error: 'Error inesperado al procesar la solicitud' }
   }
-}
-
-/**
- * Genera un código de reserva único tipo "LB-XXXXXX" (6 dígitos aleatorios).
- */
-function generateReservationCode(): string {
-  const random = Math.floor(100000 + Math.random() * 900000)
-  return `LB-${random}`
 }
