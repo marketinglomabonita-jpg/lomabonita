@@ -1,25 +1,81 @@
 name: keep-supabase-awake
 
-# Latido diario: toca la base de datos para que el plan gratuito de Supabase
-# no la pause por 7 dias de inactividad. Gratis (GitHub Actions).
-# La URL y la llave anon son publicas por diseno (van en el sitio en vivo y
-# estan protegidas por RLS); por eso pueden ir aqui sin secretos.
+# Latido: toca la base de datos cada 6 horas para que el plan gratuito de
+# Supabase no la pause por inactividad. Si el latido falla (p. ej. la DB ya se
+# pauso o hay un corte), abre o actualiza un issue para avisar. Gratis (GitHub
+# Actions). La URL y la llave anon son publicas por diseno (van en el sitio en
+# vivo y estan protegidas por RLS); por eso pueden ir aqui sin secretos.
 on:
   schedule:
-    - cron: '23 13 * * *' # diario ~08:23 Colombia (13:23 UTC)
+    - cron: '17 */6 * * *' # cada 6 horas
   workflow_dispatch: {}
+
+permissions:
+  issues: write # para abrir el issue de alerta si el latido falla
 
 jobs:
   ping:
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://xedfjhigbrttavtwvgxe.supabase.co
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlZGZqaGlnYnJ0dGF2dHd2Z3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTYyODIsImV4cCI6MjEwNDYzMjI4Mn0.ptLWu65PHsehFkTIKHDWmWOltDdtpvqHgwx7oZRf5CY
     steps:
-      - name: Ping a la API REST de Supabase
-        env:
-          SUPABASE_URL: https://xedfjhigbrttavtwvgxe.supabase.co
-          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlZGZqaGlnYnJ0dGF2dHd2Z3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTYyODIsImV4cCI6MjEwNDYzMjI4Mn0.ptLWu65PHsehFkTIKHDWmWOltDdtpvqHgwx7oZRf5CY
+      - name: Ping a la API REST de Supabase (con reintentos)
         run: |
-          code=$(curl -s -o /dev/null -w "%{http_code}" \
-            "$SUPABASE_URL/rest/v1/room_types?select=id&limit=1" \
-            -H "apikey: $SUPABASE_ANON_KEY")
-          echo "Supabase respondio HTTP $code"
-          test "$code" = "200"
+          set +e
+          ultimo=""
+          for intento in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 \
+              "$SUPABASE_URL/rest/v1/room_types?select=id&limit=1" \
+              -H "apikey: $SUPABASE_ANON_KEY")
+            ultimo="$code"
+            echo "Intento $intento: Supabase respondio HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "Latido OK."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::El latido fallo: Supabase no respondio 200 tras 3 intentos (ultimo: $ultimo)."
+          exit 1
+
+      - name: Avisar si el latido fallo (abrir/actualizar issue)
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const titulo = 'Latido de Supabase fallando (posible pausa de la base de datos)'
+            const cuerpo = [
+              'El workflow `keep-supabase-awake` no obtuvo HTTP 200 de Supabase tras varios reintentos.',
+              '',
+              'Suele significar que el proyecto de Supabase se **pausó** (plan gratuito) o está caído.',
+              'Mientras tanto, el **panel** (/admin, /cocina) no funciona; la web pública sigue viva gracias al middleware resiliente.',
+              '',
+              '**Qué hacer:** entra al dashboard de Supabase y dale **Restore** al proyecto.',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            ].join('\n')
+
+            // Reutiliza un issue abierto con el mismo título (no duplicar ni spamear).
+            const { data: abiertos } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+            })
+            const existente = abiertos.find((i) => i.title === titulo)
+
+            if (existente) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existente.number,
+                body: cuerpo,
+              })
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: titulo,
+                body: cuerpo,
+              })
+            }
